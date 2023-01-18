@@ -1,6 +1,7 @@
 import("regenerator-runtime");
 import models from "./src/models/index.js";
 import { loadConfiguration, log } from "./src/common/index.js";
+import { setupRoutes as setupAdminRoutes } from "./src/routes/admin.js";
 import { setupRoutes as setupAuthRoutes } from "./src/routes/auth.js";
 import { setupRoutes as setupBaseRoutes } from "./src/routes/base.js";
 import { setupRoutes as setupLogRoutes } from "./src/routes/logs.js";
@@ -50,6 +51,7 @@ async function main() {
         await models.sequelize.sync();
         fastify.decorate("models", models);
     });
+    fastify.register(setupAdminRoutes);
     fastify.register(setupAuthRoutes);
     fastify.register(setupBaseRoutes);
     fastify.register(setupLogRoutes);

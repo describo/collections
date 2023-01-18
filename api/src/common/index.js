@@ -1,38 +1,9 @@
 export { loadConfiguration, loadProfile, filterPrivateInformation } from "./configuration.js";
 export { getLogger, logEvent, log } from "./logger.js";
-export { submitTask, registerTask } from "./task.js";
 export { getS3Handle, getStoreHandle } from "./getS3Handle.js";
-export {
-    demandAuthenticatedUser,
-    demandAdministrator,
-    requireCollectionAccess,
-    requireItemAccess,
-} from "./middleware.js";
+export { demandAuthenticatedUser, demandAdministrator } from "./middleware.js";
 export { generateToken, verifyToken } from "./jwt.js";
-export {
-    host,
-    headers,
-    TestSetup,
-    generateLogs,
-    setupTestItem,
-    setupTestCollection,
-} from "./test-utils.js";
-
-export const completedResources = ".completed-resources.json";
-export const specialFiles = [
-    "LICENCE.md",
-    "LICENCE.txt",
-    "LICENCE",
-    "ro-crate-metadata.json",
-    "-digivol.csv",
-    "-tei.xml",
-    "nocfl.identifier.json",
-    "nocfl.inventory.json",
-    completedResources,
-];
-export const imageExtensions = ["jpe?g", "png", "webp", "tif{1,2}"];
-export const webFormats = [{ ext: "jpg", match: "jpe?g" }, "webp"];
-export const authorisedUsersFile = ".authorised-users.json";
+export { host, headers, TestSetup, generateLogs } from "./test-utils.js";
 
 import path from "path";
 import { getS3Handle } from "./getS3Handle.js";

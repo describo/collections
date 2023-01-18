@@ -1,13 +1,10 @@
 import { loadConfiguration } from "./configuration.js";
 import fsExtraPkg from "fs-extra";
-const { writeJSON } = fsExtraPkg;
 import models from "../models/index.js";
 import Chance from "chance";
 const chance = Chance();
 import lodashPkg from "lodash";
 const { range, cloneDeep } = lodashPkg;
-import { createItem } from "../lib/item.js";
-import { createCollection } from "../lib/collection.js";
 import { getS3Handle } from "./getS3Handle.js";
 
 const bucketName = "testing";
@@ -85,34 +82,4 @@ export async function generateLogs(info, warn, error) {
     for (let i in range(error)) {
         await models.log.create({ level: "error", owner: chance.email(), text: chance.sentence() });
     }
-}
-
-export async function setupTestItem({ identifier, store, user }) {
-    let item = await createItem({ identifier, userId: user.id });
-    await store.put({
-        batch: [
-            {
-                json: { some: "thing" },
-                target: `${identifier}-01.json`,
-            },
-            {
-                content: "text",
-                target: `${identifier}-01.txt`,
-            },
-            {
-                json: { some: "thing" },
-                target: `${identifier}-02.json`,
-            },
-            {
-                content: "text",
-                target: `${identifier}-02.txt`,
-            },
-        ],
-    });
-    return { item };
-}
-
-export async function setupTestCollection({ identifier, user }) {
-    let collection = await createCollection({ identifier, userId: user.id });
-    return { collection };
 }

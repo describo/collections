@@ -3,11 +3,7 @@
 import Sequelize from "sequelize";
 import user from "./user.js";
 import session from "./session.js";
-import item from "./item.js";
-import collection from "./collection.js";
-import task from "./task.js";
 import log from "./log.js";
-import itemUser from "./item_user.js";
 
 const models = {};
 
@@ -36,7 +32,7 @@ let sequelize = new Sequelize(
     config.db
 );
 
-let modules = [user, session, item, collection, task, log, itemUser];
+let modules = [user, session, log];
 
 // Initialize models
 modules.forEach((module) => {
