@@ -2,6 +2,7 @@ import ShellComponent from "./components/Shell.component.vue";
 import LoginComponent from "./components/Login.component.vue";
 import CallbackOauthLogin from "./components/authentication/OauthCallback.component.vue";
 import DashboardComponent from "./components/dashboard/Shell.component.vue";
+import CollectionsComponent from "./components/collections/Shell.component.vue";
 import AdminComponent from "./components/admin/Shell.component.vue";
 import AdminManageUsersComponent from "./components/admin/users/ManageUsers.component.vue";
 import AdminWhitelistUsersComponent from "./components/admin/users/WhitelistUsers.component.vue";
@@ -20,6 +21,19 @@ const routes = [
         },
         children: [
             { name: "dashboard", path: "dashboard", component: DashboardComponent },
+            {
+                name: "collections",
+                path: "collections",
+                component: CollectionsComponent,
+                props: true,
+                children: [
+                    {
+                        name: "collections/:code",
+                        path: ":code",
+                        component: CollectionsComponent,
+                    },
+                ],
+            },
             {
                 name: "admin",
                 path: "admin",

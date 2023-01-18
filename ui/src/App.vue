@@ -4,8 +4,4 @@
     </div>
 </template>
 
-<script setup>
-import { useStore } from "vuex";
-const $store = useStore();
-$store.dispatch("getMyCollections");
-</script>
+<script setup></script>
