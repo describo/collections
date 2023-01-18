@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col">
-        <div v-for="collection of data.collections" :key="collection.id">
+        <div v-for="collection of collections" :key="collection.id">
             <router-link :to="collectionLink(collection.code)" class="text-xl text-gray-800">
                 {{ collection.code }}
             </router-link>
@@ -9,21 +9,11 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, inject } from "vue";
-const $http = inject("$http");
+import { computed } from "vue";
+import { useStore } from "vuex";
+const $store = useStore();
 
-const data = reactive({
-    collections: [],
-});
-
-onMounted(async () => {
-    loadMyCollections();
-});
-async function loadMyCollections() {
-    let response = await $http.get({ route: "/collections" });
-    response = await response.json();
-    data.collections = response.collections;
-}
+let collections = computed(() => $store.state.myCollections);
 
 function collectionLink(code) {
     return `/collections/${code}`;

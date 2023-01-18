@@ -4,10 +4,8 @@
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {};
-    },
-};
+<script setup>
+import { useStore } from "vuex";
+const $store = useStore();
+$store.dispatch("getMyCollections");
 </script>

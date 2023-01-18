@@ -16,7 +16,9 @@
 </template>
 <script setup>
 import { reactive, computed, inject } from "vue";
+import { useStore } from "vuex";
 const $http = inject("$http");
+const $store = useStore();
 
 const data = reactive({
     form: {
@@ -31,5 +33,6 @@ const disableSubmit = computed(() => {
 
 async function onSubmit() {
     await $http.post({ route: "/admin/collections/create", body: data.form });
+    $store.dispatch("getMyCollections");
 }
 </script>

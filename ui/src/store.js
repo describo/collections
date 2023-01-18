@@ -1,26 +1,8 @@
 import { cloneDeep } from "lodash";
-// import Vue from "vue";
-// import Vuex from "vuex";
-// import VuexPersistence from "vuex-persist";
-// const vuexLocal = new VuexPersistence({
-//     storage: window.sessionStorage,
-//     reducer: (state) => {
-//         let saveState = {
-//             session: {
-//                 create: state.session.create,
-//             },
-//             target: state.target,
-//         };
-//         return saveState;
-//     },
-//     filter: (mutation) => {
-//         return ["reset", "setTargetResource", "setActiveCollection"].includes(mutation.type);
-//     },
-// });
-
-// Vue.use(Vuex);
-
 import { createStore } from "vuex";
+import router from "./routes";
+import HTTPService from "./http.service";
+const $http = new HTTPService({ router });
 
 const mutations = {
     reset: (state) => {
@@ -32,9 +14,18 @@ const mutations = {
     setUserData(state, payload) {
         state.user = { ...payload };
     },
+    setMyCollections(state, collections) {
+        state.myCollections = [...collections];
+    },
 };
 
-const actions = {};
+const actions = {
+    async getMyCollections({ commit }) {
+        let response = await $http.get({ route: "/collections" });
+        response = await response.json();
+        commit("setMyCollections", response.collections);
+    },
+};
 
 export const store = new createStore({
     state: resetState(),
@@ -48,5 +39,6 @@ function resetState() {
     return {
         configuration: undefined,
         user: {},
+        myCollections: [],
     };
 }
