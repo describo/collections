@@ -1,6 +1,5 @@
 <template>
     <div class="flex flex-col">
-        <div>My Collections</div>
         <div v-for="collection of data.collections" :key="collection.id">
             <router-link :to="collectionLink(collection.code)" class="text-xl text-gray-800">
                 {{ collection.code }}

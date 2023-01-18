@@ -6,6 +6,7 @@
             }}</router-link>
         </div>
         <MyCollectionsComponent class="pl-4" />
+        <div class="flex-grow"></div>
         <div v-if="user.administrator">
             <div class="border-b border-white pt-20"></div>
             <div class="flex flex-col space-y-4 pl-4">
@@ -22,7 +23,6 @@
                 </div>
             </div>
         </div>
-        <div class="flex-grow"></div>
         <div class="border-b border-white pt-20"></div>
         <div class="flex flex-col space-y-4 pl-4">
             <who-am-i-component />
