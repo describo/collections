@@ -30,6 +30,6 @@ const disableSubmit = computed(() => {
 });
 
 async function onSubmit() {
-    await $http.post({ route: "/admin/collection/create", body: data.form });
+    await $http.post({ route: "/admin/collections/create", body: data.form });
 }
 </script>

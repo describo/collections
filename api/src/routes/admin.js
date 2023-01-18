@@ -6,7 +6,7 @@ export function setupRoutes(fastify, options, done) {
     fastify.addHook("preHandler", demandAdministrator);
 
     fastify.get("/admin", async (req, res) => {});
-    fastify.post("/admin/collection/create", postCreateCollectionHandler);
+    fastify.post("/admin/collections/create", postCreateCollectionHandler);
     done();
 }
 
