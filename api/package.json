@@ -33,7 +33,7 @@
         "webpack-node-externals": "^3.0.0"
     },
     "dependencies": {
-        "@coedl/nocfl-js": "^1.17.0",
+        "@coedl/nocfl-js": "^1.18.3",
         "@describo/data-packs": "^0.10.0",
         "@fastify/compress": "^6.2.0",
         "@fastify/cors": "^8.2.0",

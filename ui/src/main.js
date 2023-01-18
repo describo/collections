@@ -11,13 +11,6 @@ import router from "./routes";
 import { store } from "./store";
 import ElementPlus from "element-plus";
 // import DescriboCrateBuilder from "@describo/crate-builder-component";
-import log from "loglevel";
-// import prefix from "loglevel-plugin-prefix";
-const level = process.env.NODE_ENV === "development" ? "debug" : "warn";
-log.setLevel(level);
-// const prefixer = prefix.noConflict();
-// prefixer.reg(log);
-// prefixer.apply(log);
 import { io } from "socket.io-client";
 import HTTPService from "./http.service";
 (async () => {
@@ -35,9 +28,6 @@ import HTTPService from "./http.service";
         // app.use(DescriboCrateBuilder);
         app.config.globalProperties.$http = new HTTPService({ router });
         app.provide("$http", app.config.globalProperties.$http);
-
-        app.config.globalProperties.$log = log;
-        app.provide("$log", app.config.globalProperties.$log);
 
         // app.config.globalProperties.$socket = io();
         // app.provide('$socket', app.config.globalProperties.$socket)
