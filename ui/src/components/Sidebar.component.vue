@@ -5,7 +5,8 @@
                 data.siteName
             }}</router-link>
         </div>
-        <span v-if="user.administrator">
+        <MyCollectionsComponent class="pl-4" />
+        <div v-if="user.administrator">
             <div class="border-b border-white pt-20"></div>
             <div class="flex flex-col space-y-4 pl-4">
                 <div>Administrators</div>
@@ -20,7 +21,7 @@
                     </div>
                 </div>
             </div>
-        </span>
+        </div>
         <div class="flex-grow"></div>
         <div class="border-b border-white pt-20"></div>
         <div class="flex flex-col space-y-4 pl-4">
@@ -35,8 +36,9 @@
 </template>
 
 <script setup>
-import { reactive, computed, inject } from "vue";
 import WhoAmIComponent from "./WhoAmI.component.vue";
+import MyCollectionsComponent from "./MyCollections.component.vue";
+import { reactive, computed, inject } from "vue";
 import { tokenSessionKey, removeLocalStorage } from "./storage.js";
 import { useStore } from "vuex";
 import { useRoute, useRouter } from "vue-router";

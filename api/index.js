@@ -4,6 +4,7 @@ import { loadConfiguration, log } from "./src/common/index.js";
 import { setupRoutes as setupAdminRoutes } from "./src/routes/admin.js";
 import { setupRoutes as setupAuthRoutes } from "./src/routes/auth.js";
 import { setupRoutes as setupBaseRoutes } from "./src/routes/base.js";
+import { setupRoutes as setupCollectionRoutes } from "./src/routes/collection.js";
 import { setupRoutes as setupLogRoutes } from "./src/routes/logs.js";
 import { setupRoutes as setupUserRoutes } from "./src/routes/user.js";
 
@@ -54,6 +55,7 @@ async function main() {
     fastify.register(setupAdminRoutes);
     fastify.register(setupAuthRoutes);
     fastify.register(setupBaseRoutes);
+    fastify.register(setupCollectionRoutes);
     fastify.register(setupLogRoutes);
     fastify.register(setupUserRoutes);
 
