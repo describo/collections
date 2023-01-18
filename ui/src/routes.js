@@ -6,6 +6,7 @@ import AdminComponent from "./components/admin/Shell.component.vue";
 import AdminManageUsersComponent from "./components/admin/users/ManageUsers.component.vue";
 import AdminWhitelistUsersComponent from "./components/admin/users/WhitelistUsers.component.vue";
 import AdminLogsComponent from "./components/admin/Logs.component.vue";
+import AdminCreateCollectionComponent from "./components/admin/CreateCollection.component.vue";
 import HTTPService from "./http.service";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -24,6 +25,12 @@ const routes = [
                 path: "admin",
                 component: AdminComponent,
                 children: [
+                    {
+                        name: "admin.collection.create",
+                        path: "collection/create",
+                        component: AdminCreateCollectionComponent,
+                        meta: { name: "Create Collection" },
+                    },
                     {
                         name: "admin.users.invite",
                         path: "users/permitted",

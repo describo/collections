@@ -49,6 +49,11 @@ const data = reactive({
     siteName: $store.state.configuration.ui.siteName,
     adminControls: [
         {
+            name: "Create Collection",
+            path: "/admin/collection/create",
+            icon: "fa-solid fa-layer-group",
+        },
+        {
             name: "Permitted Users",
             path: "/admin/users/permitted",
             icon: "fa-solid fa-user-tag",
