@@ -1,6 +1,8 @@
 "use strict";
 
 import Sequelize from "sequelize";
+import collection from "./collection.js";
+import entity from "./entity.js";
 import user from "./user.js";
 import session from "./session.js";
 import log from "./log.js";
@@ -32,7 +34,7 @@ let sequelize = new Sequelize(
     config.db
 );
 
-let modules = [user, session, log];
+let modules = [user, session, log, entity, collection];
 
 // Initialize models
 modules.forEach((module) => {

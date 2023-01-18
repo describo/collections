@@ -60,6 +60,7 @@ export default function (sequelize, DataTypes) {
     );
     User.associate = function (models) {
         User.hasOne(models.session, { onDelete: "CASCADE" });
+        User.belongsToMany(models.collection, { through: "user_collection" });
     };
 
     return User;
