@@ -1,0 +1,33 @@
+FROM --platform=$TARGETPLATFORM node:18-bullseye AS tasks-builder
+COPY tasks /srv/tasks
+COPY api /srv/api
+WORKDIR /srv/tasks
+RUN npm install
+RUN npm run build:production
+
+FROM node:18-bullseye-slim
+WORKDIR /srv
+RUN apt-get update && apt-get install -y ca-certificates
+COPY --from=tasks-builder /srv/tasks/package.json /srv/package.json
+COPY --from=tasks-builder /srv/tasks/package-lock.json /srv/package-lock.json
+COPY tasks/unstick-queues.js /srv/unstick-queues.js
+RUN npm install
+COPY --from=tasks-builder /srv/tasks/dist/ /srv/
+COPY tasks/src/xslt /srv/tasks/src/xslt
+CMD [ "node", "./server.bundle.cjs" ]
+
+# FROM node:18-bullseye-slim
+# LABEL org.opencontainers.image.source=https://github.com/CoEDL/nyingarn-workspace
+# LABEL org.opencontainers.image.description="The Nyingarn Workspace Tasks container"
+# LABEL org.opencontainers.image.licenses=GPLv3
+
+# RUN apt-get update && apt-get install -y postgresql-client ca-certificates
+# COPY tasks /srv/tasks
+# COPY api /srv/api
+
+# WORKDIR /srv/api
+# RUN npm install
+# WORKDIR /srv/tasks
+# RUN npm install
+
+# CMD [ "node", "/srv/tasks/index.js" ]

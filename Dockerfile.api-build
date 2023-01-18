@@ -1,0 +1,11 @@
+FROM  --platform=$TARGETPLATFORM node:18-bullseye-slim
+LABEL org.opencontainers.image.source=https://github.com/CoEDL/nyingarn-workspace
+LABEL org.opencontainers.image.description="The Nyingarn Workspace API container"
+LABEL org.opencontainers.image.licenses=GPLv3
+
+RUN apt-get update && apt-get install -y postgresql-client ca-certificates
+COPY api /srv/api
+COPY scripts/wait-for-postgres.sh /srv/api/wait-for-postgres.sh
+WORKDIR /srv/api
+RUN npm install
+CMD [ "/srv/api/wait-for-postgres.sh", "node", "/srv/api/index.js" ]

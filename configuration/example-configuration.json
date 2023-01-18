@@ -1,0 +1,183 @@
+{
+    "ui": {
+        "siteName": "Describo Collections",
+        "tusEndpoint": "http://tus.nyingarn.net/files/",
+        "termsAndConditionsOfUse": "https://nyingarn.net/nyingarn-workspace-terms-and-conditions-of-use/",
+        "itemName": {
+            "help": "Must consist only of alphanumeric characters and must start with a letter.",
+            "checkNameStructure": "^[a-z,A-Z][a-z,A-Z,0-9]+$"
+        },
+        "collectionName": {
+            "help": "Must start with a letter and can have the following characters only: a-z, A-Z, 0-9 and _.",
+            "checkNameStructure": "^[a-z,A-Z][a-z,A-Z,0-9,_]+$"
+        },
+        "filename": {
+            "matchItemName": true,
+            "checkNameStructure": "^[a-z,A-Z][a-z,A-Z,0-9,_]+-[0-9]+[a-z,A-Z,0-9]+\\..*$",
+            "helpExtension": "Accepted file types: tiff, jpg, png, csv, xml",
+            "checkExtension": ".*\\.(jpe?g|tif{1,2}|png|csv|xml)$"
+        },
+        "teiEditorControls": [
+            {
+                "text": "&",
+                "help": "Insert an Ampersand",
+                "markup": { "pre": "&amp;" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-chevron-left'>",
+                "help": "Insert a left chevron",
+                "markup": { "pre": "&lt;" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-chevron-right'>",
+                "help": "Insert a right chevron",
+                "markup": { "pre": "&rt;" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-underline'></i>",
+                "help": "Underline the selection",
+                "markup": { "pre": "<hi rend='underline'>", "post": "</hi>" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-strikethrough'></i>",
+                "help": "The (deletion) element contains a span of text which was deleted in the original text,<br/> e.g. by being crossed out.",
+                "markup": { "element": "del" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-chevron-left'></i><span class='pb-1'>unclear</span><i class='fa-solid fa-chevron-right'></i>",
+                "help": "The element contains text which cannot be transcribed with certainty because it's illegible in the source.",
+                "markup": { "element": "unclear" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-chevron-left'></i><span class='pb-1'>p</span><i class='fa-solid fa-chevron-right'></i>",
+                "help": "Mark up a paragraph.",
+                "markup": { "element": "p" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-chevron-left'></i><span class='pb-1'>line</span><i class='fa-solid fa-chevron-right'></i>",
+                "help": "Mark up a line.",
+                "markup": { "element": "line" }
+            },
+            {
+                "icon": "<i class='fa-solid fa-chevron-left'></i><span class='pb-1'>gap</span><i class='fa-solid fa-chevron-right'></i>",
+                "help": "Used to indicate a gap, where some text in the original has not been transcribed, for whatever reason.",
+                "markup": { "element": "gap" }
+            },
+            {
+                "text": "Rule ---",
+                "help": "Insert a horizontal rule",
+                "markup": { "pre": "<milestone rend='rule'/>" }
+            },
+            {
+                "icon": "Table  <i class='fa-solid fa-table-cells-large'></i>",
+                "help": "Insert a table",
+                "markup": { "element": "table" }
+            },
+            {
+                "icon": "Table <i class='fa-solid fa-chevron-left'></i><span class='pb-1'>row</span><i class='fa-solid fa-chevron-right'></i>",
+                "help": "Insert a table row",
+                "markup": { "element": "row" }
+            },
+            {
+                "icon": "Table <i class='fa-solid fa-chevron-left'></i><span class='pb-1'>cell</span><i class='fa-solid fa-chevron-right'></i>",
+                "help": "Insert a table cell",
+                "markup": { "element": "cell" }
+            },
+            {
+                "text": "Person",
+                "help": "The (personal name) element contains a proper noun referring to a person, possibly<br/> including one or more of the person's forenames, surnames, honorifics, added names, etc.",
+                "markup": { "element": "persName" }
+            },
+            {
+                "text": "Place",
+                "help": "The element is used to mark up a place name.",
+                "markup": { "element": "placeName" }
+            },
+            {
+                "text": "Organisation",
+                "help": "The element contains the name of an organisation including a tribal or national or linguistic group.",
+                "markup": { "element": "orgName" }
+            },
+            {
+                "text": "Graphic",
+                "help": "The element marks the appearance of a graphic embedded in the text.<br/> This could be a formal illustration or merely a doodle.",
+                "markup": { "element": "graphic" }
+            },
+            {
+                "text": "Supplied",
+                "help": "The element signifies text which is not a transcription of the original, but was instead supplied by the encoder.<br/> For example the original text may have been damaged, or the original author may have<br/> inadvertently and obviously left out a word or punctuation character.",
+                "markup": { "element": "supplied" }
+            }
+        ]
+    },
+    "api": {
+        "domain": "nyingarn.net",
+        "administrators": ["{user@email.com}", "{other user@somewhere.else.com}"],
+
+        "filenaming": {
+            "adminTag": "ADMIN",
+            "resourceQualifierSeparator": ".",
+            "identifierSegments": {
+                "2": ["itemId", "resourceId"],
+                "3": ["collectionId", "itemId", "resourceId"]
+            }
+        },
+        "licence": "LICENCE.md",
+        "profiles": {
+            "collection": "nyingarn-collection-profile.json",
+            "item": "nyingarn-item-profile.json"
+        },
+        "session": {
+            "lifetime": { "hours": 8 },
+            "secret": "{some secret - 32 characters or longer}"
+        },
+        "processing": {
+            "exchange": "nyingarn"
+        },
+        "services": {
+            "rabbit": {
+                "host": "rabbit",
+                "user": "guest",
+                "pass": "guest",
+                "port": "5672",
+                "exchanges": [
+                    { "name": "nyingarn", "type": "fanout", "autoDelete": true, "persistent": true }
+                ],
+                "queues": [
+                    { "name": "nyingarn_tasks", "autoDelete": true, "subscribe": true, "limit": 1 }
+                ],
+                "bindings": [{ "exchange": "nyingarn", "target": "nyingarn_tasks", "keys": [] }]
+            },
+            "s3": {
+                "endpointUrl": "http://minio:9000",
+                "forcePathStyle": true,
+                "bucket": "uploads",
+                "awsAccessKeyId": "{ access key }",
+                "awsSecretAccessKey": "{ secret key }",
+                "region": "us-east-1"
+            },
+            "aws": {
+                "awsAccessKeyId": "{ access key }",
+                "awsSecretAccessKey": "{ secret key }",
+                "region": "{ region }"
+            },
+            "elastic": {
+                "host": "http://elastic:9200"
+            }
+        },
+        "authentication": {
+            "google": {
+                "clientId": "{client id}",
+                "clientSecret": "{client secret}",
+                "redirectUri": "http://{your host}/callback-oauth-login",
+                "discover": "https://accounts.google.com"
+            },
+            "aaf": {
+                "clientId": "{client id}",
+                "clientSecret": "{client secret}",
+                "redirectUri": "http://{your host}/callback-oauth-login",
+                "discover": "https://central.aaf.edu.au"
+            }
+        }
+    }
+}

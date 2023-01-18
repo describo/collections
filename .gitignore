@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.env*
+
+configuration.json
+development-configuration.json
+development-configuration.json.backup
+testing-configuration.json
+production-configuration.json
+eng.traineddata
+
+# temporary backup files created by jEdit text editor
+*.*~
+
+docker-metadata

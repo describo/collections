@@ -1,0 +1,79 @@
+/* Styles for the "preview" panel derived from the tei:surface XML */
+
+/* the root element of the preview */
+div.tei {
+    box-sizing: content-box;
+    padding: 0.5em;
+}
+
+/* container for a group of columns */
+div.tei-column-group {
+    display: flex; 
+    justify-content: space-between; 
+    column-gap: 1.5em;
+}
+/* a div representing a single column, within a div.tei-column-group */
+div.tei-column {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+/* column-break marker */
+hr.tei-milestone.unit-column {
+    border-color: rgb(191, 191, 191);
+    width: 100%;
+}
+
+/* <fw type="page-number">34/110</fw> */
+.tei-fw.type-page-number {
+    text-align: right;
+}
+
+/* headings, originally inferred from center alignment in MSWord */
+.tei-label {
+    text-align: center;
+}
+
+/* headings */
+header.tei-head {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    font-size: 1.2em;
+}
+
+/* <seg rend="underline> */
+.rend-underline {
+    text-decoration: underline;
+}
+
+/* <seg rend="strikethrough> */
+.rend-strikethrough {
+    text-decoration: line-through;
+}
+
+/* tables */
+table.tei-table {
+    table-layout: auto;
+    border-collapse: collapse;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+td.tei-cell {
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(191, 191, 191);
+    padding: 0.25em 0.5em;
+}
+
+/* unclear */
+.tei-unclear {
+    text-decoration-style: wavy;
+    text-decoration-line: underline;
+    text-decoration-color: red;
+}
+
+/* deletion */
+.tei-del {
+	text-decoration: line-through;
+}
