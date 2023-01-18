@@ -8,6 +8,7 @@ export function setupRoutes(fastify, options, done) {
     done();
 }
 
+// TODO this code does not have tests
 async function getCollectionsHandler(req) {
     let collections = await models.collection.findAll({
         attributes: ["id", "name", "code"],

@@ -10,6 +10,7 @@ export function setupRoutes(fastify, options, done) {
     done();
 }
 
+// TODO this code does not have tests
 async function postCreateCollectionHandler(req) {
     let { name, code } = req.body;
     let user = req.session.user;
