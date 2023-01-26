@@ -4,7 +4,7 @@
             <sidebar-component class="w-full bg-stone-300 h-screen" />
         </div>
         <div class="w-full relative">
-            <router-view class="p-2" />
+            <router-view />
         </div>
     </div>
 </template>

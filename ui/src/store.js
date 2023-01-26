@@ -25,10 +25,6 @@ const actions = {
         response = await response.json();
         commit("setMyCollections", response.collections);
     },
-    async loadCollectionData(context, { code }) {
-        let response = await $http.get({ route: `/collections/${code}/load` });
-        response = await response.json();
-    },
 };
 
 export const store = new createStore({
