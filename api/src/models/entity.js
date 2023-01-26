@@ -6,9 +6,8 @@ export default function (sequelize, DataTypes) {
         {
             id: {
                 primaryKey: true,
-                type: DataTypes.UUID,
+                type: DataTypes.STRING(32),
                 allowNull: false,
-                defaultValue: DataTypes.UUIDV4,
             },
             eid: {
                 type: DataTypes.STRING,
@@ -19,11 +18,7 @@ export default function (sequelize, DataTypes) {
                 allowNull: false,
             },
             name: {
-                type: DataTypes.STRING,
-                allowNull: true,
-            },
-            data: {
-                type: DataTypes.JSONB,
+                type: DataTypes.TEXT,
                 allowNull: true,
             },
         },
@@ -45,6 +40,11 @@ export default function (sequelize, DataTypes) {
     );
     Entity.associate = function (models) {
         Entity.belongsTo(models.collection);
+        Entity.hasMany(models.property, {
+            onDelete: "CASCADE",
+            foreignKey: { allowNull: false },
+            hooks: true,
+        });
     };
 
     return Entity;
