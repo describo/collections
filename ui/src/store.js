@@ -25,6 +25,10 @@ const actions = {
         response = await response.json();
         commit("setMyCollections", response.collections);
     },
+    async loadCollectionData(context, { code }) {
+        let response = await $http.get({ route: `/collections/${code}/load` });
+        response = await response.json();
+    },
 };
 
 export const store = new createStore({
@@ -32,7 +36,6 @@ export const store = new createStore({
     mutations,
     actions,
     modules: {},
-    // plugins: [vuexLocal.plugin],
 });
 
 function resetState() {
