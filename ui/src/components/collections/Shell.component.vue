@@ -17,6 +17,6 @@ const data = reactive({
     ...$route.params,
 });
 function loadDataset() {
-    $store.dispatch("loadDataset", { code: $route.params.code });
+    $store.dispatch("loadCollectionData", { code: $route.params.code });
 }
 </script>
