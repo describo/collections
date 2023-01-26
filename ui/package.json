@@ -30,6 +30,7 @@
         "@babel/core": "^7.20.12",
         "@babel/plugin-proposal-optional-chaining": "^7.20.7",
         "@babel/preset-env": "^7.20.2",
+        "@originjs/vite-plugin-commonjs": "^1.0.3",
         "@vitejs/plugin-vue": "^4.0.0",
         "@vue/compiler-sfc": "^3.2.45",
         "autoprefixer": "^10.4.13",
