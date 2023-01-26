@@ -71,6 +71,7 @@ services:
             - api_node_modules:/srv/api/node_modules:delegated
             - ./api:/srv/api:delegated
             - ./.git:/srv/api/.git:delegated
+            - ./data:/srv/data:delegated
             - ./scripts/wait-for-it.sh:/wait-for-it.sh
             - ./configuration:/srv/configuration
         working_dir: /srv/api
