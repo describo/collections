@@ -24,9 +24,10 @@
             </el-form>
         </el-card>
 
-        <el-card v-loading="data.loading">
+        <el-card>
             <template #header>Load Collection Data</template>
             <el-select
+                v-loading="data.loading"
                 v-model="data.selectedCollection"
                 placeholder="Select a collection to load"
                 @change="loadCollection"
@@ -39,14 +40,30 @@
                     :value="item.code"
                 />
             </el-select>
+            <el-table
+                :data="data.collectionDataLoadingLogs"
+                v-if="data.collectionDataLoadingLogs.length"
+            >
+                <el-table-column prop="msg" label="Message" />
+                <el-table-column prop="date" label="Date" width="250" />
+            </el-table>
         </el-card>
     </div>
 </template>
 <script setup>
 import { reactive, computed, inject } from "vue";
 import { useStore } from "vuex";
+import { io } from "socket.io-client";
+import { parseISO, format } from "date-fns";
 const $http = inject("$http");
 const $store = useStore();
+const $socket = io();
+$socket.on("connect", () => {
+    console.log($socket.id);
+});
+$socket.on("load-collection-data", ({ msg, date }) => {
+    data.collectionDataLoadingLogs.push({ msg, date: format(parseISO(date), "PPpp") });
+});
 
 const data = reactive({
     loading: false,
@@ -55,6 +72,7 @@ const data = reactive({
         code: undefined,
     },
     selectedCollection: undefined,
+    collectionDataLoadingLogs: [],
 });
 
 const disableSubmit = computed(() => {
@@ -68,8 +86,11 @@ async function onSubmit() {
 }
 async function loadCollection(code) {
     data.loading = true;
-    let response = await $http.get({ route: `/collections/${code}/load` });
+    data.collectionDataLoadingLogs = [];
+    let response = await $http.get({
+        route: `/collections/${code}/load`,
+        params: { clientId: $socket.id },
+    });
     data.loading = false;
-    data.selectedCollection = undefined;
 }
 </script>
