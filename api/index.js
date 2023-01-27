@@ -12,6 +12,7 @@ import Fastify from "fastify";
 import fastifyCompress from "@fastify/compress";
 import cors from "@fastify/cors";
 import fastifySensible from "@fastify/sensible";
+import fastifyIO from "fastify-socket.io";
 const envToLogger = {
     development: {
         transport: {
@@ -39,13 +40,15 @@ async function main() {
     if (process.env.NODE_ENV === "development") {
         fastify.register(cors, { origin: "*" });
     }
+    fastify.register(fastifyIO);
     fastify.register(fastifySensible);
     fastify.register(fastifyCompress);
     fastify.addHook("onRequest", async (req, res) => {
         configuration = await loadConfiguration();
-        req.session = {
-            configuration,
-        };
+        (req.io = fastify.io),
+            (req.session = {
+                configuration,
+            });
         global.testing = req.headers.testing;
     });
     fastify.addHook("onReady", async () => {
