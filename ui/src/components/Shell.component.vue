@@ -3,7 +3,7 @@
         <div class="bg-violet-400 h-screen sidebar-width">
             <sidebar-component class="w-full bg-stone-300 h-screen" />
         </div>
-        <div class="h-screen w-full overflow-scroll">
+        <div class="h-screen w-full overflow-scroll p-2">
             <router-view />
         </div>
     </div>
