@@ -67,10 +67,13 @@ async function getCollectionsLoadHandler(req, res) {
     // load the crate file
     let crate = await readJSON(crateFile);
 
+    // assign identifier to all entities
     const entitiesByDescriboId = {};
     const entitiesByAtId = {};
     const rootDescriptor = crate["@graph"].filter((e) => e["@id"] === "ro-crate-metadata.json")[0];
-    console.log(`Assigning identifiers`, new Date());
+    req.io
+        .to(req.query.clientId)
+        .emit("load-collection-data", { msg: `Assigning identifiers`, date: new Date() });
     for (let entity of crate["@graph"]) {
         if (entity["@id"] === rootDescriptor.about["@id"]) entity.label = "RootDescriptor";
         entity.describoId = createId();
@@ -78,8 +81,10 @@ async function getCollectionsLoadHandler(req, res) {
         entitiesByAtId[entity["@id"]] = entity;
     }
 
-    console.time();
-    console.log(`Preparing the inserts`, new Date());
+    // prepare the entity and property DB inserts
+    req.io
+        .to(req.query.clientId)
+        .emit("load-collection-data", { msg: `Preparing inserts`, date: new Date() });
     const entityMainProperties = ["@id", "@type", "name", "label", "describoId"];
     let entityInserts = [];
     let propertyInserts = [];
@@ -98,13 +103,7 @@ async function getCollectionsLoadHandler(req, res) {
             if (!entity[property]) continue;
             for (let instance of entity[property]) {
                 if (!entityMainProperties.includes(property)) {
-                    // console.log(property, instance, isPlainObject(instance));
                     if (isString(instance)) {
-                        // console.log(
-                        //     `PropertyId: '${createId()}' Property: '${property}' sourceEntityId: '${
-                        //         entity.describoId
-                        //     }', value: '${instance}'`
-                        // );
                         propertyInserts.push({
                             id: createId(),
                             property,
@@ -115,11 +114,6 @@ async function getCollectionsLoadHandler(req, res) {
                     } else if (isPlainObject(instance)) {
                         let targetEntity = entitiesByAtId[instance["@id"]];
                         if (targetEntity) {
-                            // console.log(
-                            //     `PropertyId: '${createId()}' Property: '${property}' sourceEntityId: '${
-                            //         entity.describoId
-                            //     }', targetEntityId: '${targetEntity.describoId}'`
-                            // );
                             propertyInserts.push({
                                 id: createId(),
                                 property,
@@ -139,10 +133,13 @@ async function getCollectionsLoadHandler(req, res) {
                     }
                 }
             }
-            // console.log(property);
         }
     }
-    console.log("inserting db records");
+
+    // insert entities into the DB
+    req.io
+        .to(req.query.clientId)
+        .emit("load-collection-data", { msg: `Inserting DB records`, date: new Date() });
     let chunkSize = 100;
     if (entityInserts.length < 10000) {
         chunkSize = 5000;
@@ -153,12 +150,16 @@ async function getCollectionsLoadHandler(req, res) {
     } else {
         chunkSize = 50000;
     }
-
     for (let records of chunk(entityInserts, chunkSize)) {
-        console.log(`inserted ${records.length} entity records`, new Date());
+        const total = records.length;
         await models.entity.bulkCreate(records);
+        req.io.to(req.query.clientId).emit("load-collection-data", {
+            msg: `Inserted ${total} entity records`,
+            date: new Date(),
+        });
     }
 
+    // insert properties into the DB
     chunkSize = 100;
     if (propertyInserts.length < 10000) {
         chunkSize = 5000;
@@ -170,17 +171,21 @@ async function getCollectionsLoadHandler(req, res) {
         chunkSize = 50000;
     }
     for (let records of chunk(propertyInserts, chunkSize)) {
-        console.log(`inserted ${records.length} property records`, new Date());
+        const total = records.length;
         await models.property.bulkCreate(records);
+        req.io.to(req.query.clientId).emit("load-collection-data", {
+            msg: `Inserted ${total} property records`,
+            date: new Date(),
+        });
     }
 
-    console.log("n entities", await models.entity.count({ where: { collectionId } }));
-    console.log("n properties", await models.property.count({ where: { collectionId } }));
+    const nEntities = await models.entity.count({ where: { collectionId } });
+    const nProperties = await models.property.count({ where: { collectionId } });
+    req.io.to(req.query.clientId).emit("load-collection-data", {
+        msg: `Done: loaded ${nEntities} entities and ${nProperties} properties into the DB`,
+        date: new Date(),
+    });
 
-    console.timeEnd();
-    // group entity graph by '@id'
-    // walk the graph rewriting all @id ref's to point to describoId
-    // ingest the graph
     return {};
 }
 
