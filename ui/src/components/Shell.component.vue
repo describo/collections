@@ -1,9 +1,9 @@
 <template>
-    <div class="flex flex-row relative">
-        <div class="relative bg-violet-400 h-screen sidebar-width">
+    <div class="flex flex-row">
+        <div class="bg-violet-400 h-screen sidebar-width">
             <sidebar-component class="w-full bg-stone-300 h-screen" />
         </div>
-        <div class="w-full relative">
+        <div class="h-screen w-full overflow-scroll">
             <router-view />
         </div>
     </div>
