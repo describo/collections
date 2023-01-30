@@ -227,21 +227,41 @@ async function loadEntity(req) {
     let properties = {};
     for (let p of entity.properties) properties[p.property] = [];
     for (let p of entity.properties) {
-        if (p.value) properties[p.property].push({ id: p.id, value: p.value });
+        if (p.value)
+            properties[p.property].push({
+                propertyId: p.id,
+                srcEntityId: p.entityId,
+                property: p.property,
+                value: p.value,
+            });
         if (p.valueStringified)
-            properties[p.property].push({ id: p.id, value: JSON.parse(p.value) });
+            properties[p.property].push({
+                propertyId: p.id,
+                srcEntityId: p.entityId,
+                property: p.property,
+                value: JSON.parse(p.value),
+            });
         if (p.targetEntity)
             properties[p.property].push({
-                ...p.targetEntity.get(),
-                etype: JSON.parse(p.targetEntity.etype),
+                propertyId: p.id,
+                srcEntityId: p.entityId,
+                property: p.property,
+                tgtEntityId: p.targetEntityId,
+                tgtEntity: {
+                    "@id": p.targetEntity.eid,
+                    "@type": JSON.parse(p.targetEntity.etype),
+                    name: p.targetEntity.name,
+                },
             });
     }
     let entityData = entity.get();
     delete entityData.properties;
     entityData = {
-        ...entityData,
-        etype: JSON.parse(entity.etype),
-        ...properties,
+        describoId: entity.id,
+        "@id": entity.eid,
+        "@type": JSON.parse(entity.etype),
+        name: entity.name,
+        properties,
     };
     return { entity: entityData };
 }
