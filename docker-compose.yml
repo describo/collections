@@ -23,10 +23,6 @@ services:
             POSTGRES_PASSWORD: ""
             POSTGRES_HOST_AUTH_METHOD: "trust"
             PGDATA: /postgresql/data
-        # volumes:
-        #     - describo_online_db_test:/postgresql
-        #ports:
-        #    - 5432:5432
 
     minio:
         image: minio/minio:latest
@@ -96,7 +92,9 @@ services:
             NODE_ENV: "development"
         volumes:
             - ./ui:/srv/ui:delegated
+            - ../crate-builder-component:/srv/describo:delegated
             - .git:/srv/ui/.git:delegated
+            - ../crate-builder-component.git:/srv/describo/.git:delegated
             - ui_node_modules:/srv/ui/node_modules:delegated
         working_dir: /srv/ui
         command: [ "npm", "run", "develop" ]
