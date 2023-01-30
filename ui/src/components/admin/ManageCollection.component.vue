@@ -58,9 +58,6 @@ import { parseISO, format } from "date-fns";
 const $http = inject("$http");
 const $store = useStore();
 const $socket = io();
-$socket.on("connect", () => {
-    console.log($socket.id);
-});
 $socket.on("load-collection-data", ({ msg, date }) => {
     data.collectionDataLoadingLogs.push({ msg, date: format(parseISO(date), "PPpp") });
 });
