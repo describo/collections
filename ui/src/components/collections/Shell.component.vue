@@ -18,11 +18,18 @@
         </div>
     </div>
     <div class="overflow-scroll" :class="panelHeight">
-        <pre>{{ data.entity }}</pre>
+        <DescriboCrateBuilderComponent
+            v-if="data.entity.describoId"
+            :entity="data.entity"
+            :crateManager="data.crateManager"
+            :mode="data.configuration.mode"
+            :configuration="data.configuration"
+        />
     </div>
 </template>
 
 <script setup>
+import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
 import { reactive, inject, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
@@ -33,6 +40,19 @@ const $http = inject("$http");
 const data = reactive({
     queryString: "",
     entity: {},
+    crateManager: {
+        profile: {},
+    },
+    configuration: {
+        enableContextEditor: false,
+        enableCratePreview: false,
+        enableBrowseEntities: false,
+        enableTemplateSave: false,
+        readonly: false,
+        enableTemplateLookups: false,
+        enableDataPackLookups: false,
+        mode: "online",
+    },
 });
 let code = computed(() => $route.params.code);
 let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 50}px` }));
@@ -49,11 +69,12 @@ async function lookupEntity(query, cb) {
 }
 
 async function loadEntity(entity) {
+    data.entity = {};
     let response = await $http.get({
         route: `/collections/${$route.params.code}/entities/${entity.id}`,
     });
     if (response.status !== 200) return;
     response = await response.json();
-    data.entity = response.entity;
+    data.entity = { ...response.entity };
 }
 </script>
