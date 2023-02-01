@@ -21,6 +21,10 @@ export default function (sequelize, DataTypes) {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            label: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
         },
         {
             timestamps: true,
