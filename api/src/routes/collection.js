@@ -19,9 +19,15 @@ export function setupRoutes(fastify, options, done) {
 
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", requireCollectionAccess);
-        fastify.get("/collections/:code/load", getCollectionsLoadHandler);
+        fastify.get("/collections/:code/load", collectionLoadHandler);
         fastify.get("/collections/:code/entities", lookupEntities);
         fastify.get("/collections/:code/entities/:entityId", loadEntity);
+        fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
+        fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
+        fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
+        fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
+        fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
+        fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
         done();
     });
     done();
@@ -49,7 +55,7 @@ async function getCollectionsHandler(req) {
 }
 
 // TODO this code does not have tests
-async function getCollectionsLoadHandler(req, res) {
+async function collectionLoadHandler(req, res) {
     const collectionsCode = req.params.code;
     const dataPath = "/srv/data";
     const crateFile = path.join(dataPath, collectionsCode, "ro-crate-metadata.json");
@@ -75,9 +81,11 @@ async function getCollectionsLoadHandler(req, res) {
         .to(req.query.clientId)
         .emit("load-collection-data", { msg: `Assigning identifiers`, date: new Date() });
     for (let entity of crate["@graph"]) {
-        if (entity["@id"] === rootDescriptor.about["@id"]) entity.label = "RootDescriptor";
+        if (entity["@id"] === "ro-crate-metadata.json") entity.label = "RootDescriptor";
+        if (entity["@id"] === rootDescriptor.about["@id"]) entity.label = "RootDataset";
         entity.describoId = createId();
-        entitiesByDescriboId[entity.describoId] = entity;
+        (entity["@type"] = asArray(entity["@type"])),
+            (entitiesByDescriboId[entity.describoId] = entity);
         entitiesByAtId[entity["@id"]] = entity;
     }
 
@@ -92,8 +100,9 @@ async function getCollectionsLoadHandler(req, res) {
         entityInserts.push({
             id: entity.describoId,
             eid: entity["@id"],
-            etype: JSON.stringify(entity["@type"]),
+            etype: concat(entity["@type"]),
             name: entity?.name,
+            label: entity.label,
             collectionId,
         });
         for (let property of Object.keys(entity)) {
@@ -189,8 +198,10 @@ async function getCollectionsLoadHandler(req, res) {
     return {};
 }
 
+// TODO this code does not have tests
 async function lookupEntities(req) {
     // console.log(req.session.collection);
+    console.log(req.query.queryString);
     const queryString = req.query.queryString;
     let matches = await models.entity.findAll({
         where: {
@@ -211,12 +222,30 @@ async function lookupEntities(req) {
         limit: 10,
     });
 
-    return { matches: matches.map((m) => ({ ...m.get(), etype: JSON.parse(m.etype) })) };
+    return {
+        matches: matches.map((m) => ({
+            describoId: m.id,
+            eid: m.eid,
+            etype: m.etype,
+            name: m.name,
+        })),
+    };
 }
 
+// TODO this code does not have tests
 async function loadEntity(req) {
+    console.log(req.params);
     let entity = await models.entity.findOne({
-        where: { id: req.params.entityId, collectionId: req.session.collection.id },
+        where: {
+            [Op.and]: [
+                {
+                    [Op.or]: [{ id: req.params.entityId }, { label: req.params.entityId }],
+                },
+                {
+                    collectionId: req.session.collection.id,
+                },
+            ],
+        },
         include: [
             {
                 model: models.property,
@@ -249,7 +278,7 @@ async function loadEntity(req) {
                 tgtEntityId: p.targetEntityId,
                 tgtEntity: {
                     "@id": p.targetEntity.eid,
-                    "@type": JSON.parse(p.targetEntity.etype),
+                    "@type": p.targetEntity.etype,
                     name: p.targetEntity.name,
                 },
             });
@@ -259,9 +288,105 @@ async function loadEntity(req) {
     entityData = {
         describoId: entity.id,
         "@id": entity.eid,
-        "@type": JSON.parse(entity.etype),
+        "@type": entity.etype,
         name: entity.name,
         properties,
     };
     return { entity: entityData };
+}
+
+// TODO this code does not have tests
+async function createEntityHandler(req) {
+    let { entity, property } = req.body;
+
+    // create the new entity
+    entity = await this.models.entity.findOrCreate({
+        where: {
+            collectionId: req.session.collection.id,
+            eid: entity["@id"],
+        },
+        defaults: {
+            id: createId(),
+            entityId: req.params.entityId,
+            collectionId: req.session.collection.id,
+            eid: entity["@id"],
+            etype: concat(entity["@type"]),
+            name: entity.name,
+        },
+    });
+    entity = entity[0];
+
+    // associate it to the parent entity
+    await this.models.property.create({
+        id: createId(),
+        property: property,
+        collectionId: req.session.collection.id,
+        entityId: req.params.entityId,
+        targetEntityId: entity.id,
+    });
+}
+
+// TODO this code does not have tests
+async function deleteEntityHandler(req) {
+    // delete the new entity
+    await this.models.entity.destroy({
+        where: {
+            collectionId: req.session.collection.id,
+            id: req.params.entityId,
+        },
+    });
+}
+
+// TODO this code does not have tests
+async function updateEntityHandler(req) {
+    let entity = await this.models.entity.findOne({
+        where: { id: req.params.entityId, collectionId: req.session.collection.id },
+    });
+    if (req.body.name) entity.name = req.body.name;
+    if (req.body["@id"]) entity.eid = req.body["@id"];
+    await entity.save();
+}
+
+// TODO this code does not have tests
+async function addPropertyHandler(req) {
+    await this.models.property.create({
+        id: createId(),
+        property: req.body.property,
+        collectionId: req.session.collection.id,
+        entityId: req.params.entityId,
+        value: req.body.value,
+    });
+}
+
+// TODO this code does not have tests
+async function updatePropertyHandler(req) {
+    let property = await this.models.property.findOne({
+        where: { id: req.params.propertyId, collectionId: req.session.collection.id },
+    });
+    property.value = req.body.value;
+    await property.save();
+}
+
+// TODO this code does not have tests
+async function deletePropertyHandler(req) {
+    let property = await this.models.property.findOne({
+        where: { id: req.params.propertyId, collectionId: req.session.collection.id },
+    });
+    if (property?.targetEntityId) {
+        let count = await this.models.property.count({
+            where: { targetEntityId: property.targetEntityId },
+        });
+        if (count <= 1) {
+            await this.models.entity.destroy({ where: { id: property.targetEntityId } });
+        }
+    }
+    await property.destroy();
+}
+
+function asArray(value) {
+    return !isArray(value) ? [value] : value;
+}
+
+function concat(value) {
+    return asArray(value).join(", ");
 }
