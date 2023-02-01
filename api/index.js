@@ -43,12 +43,13 @@ async function main() {
     fastify.register(fastifyIO);
     fastify.register(fastifySensible);
     fastify.register(fastifyCompress);
+    fastify.decorateRequest("models", "");
     fastify.addHook("onRequest", async (req, res) => {
         configuration = await loadConfiguration();
-        (req.io = fastify.io),
-            (req.session = {
-                configuration,
-            });
+        req.io = fastify.io;
+        req.session = {
+            configuration,
+        };
         global.testing = req.headers.testing;
     });
     fastify.addHook("onReady", async () => {
