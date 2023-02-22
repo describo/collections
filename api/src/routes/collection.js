@@ -19,6 +19,7 @@ export function setupRoutes(fastify, options, done) {
 
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", requireCollectionAccess);
+        fastify.get("/collections/:code/profile", getCollectionProfileHandler);
         fastify.get("/collections/:code/load", collectionLoadHandler);
         fastify.get("/collections/:code/entities", lookupEntities);
         fastify.get("/collections/:code/entities/:entityId", loadEntity);
@@ -55,6 +56,12 @@ async function getCollectionsHandler(req) {
 }
 
 // TODO this code does not have tests
+async function getCollectionProfileHandler(req) {
+    console.log("load collection profile");
+    return { profile: {} };
+}
+
+// TODO this code does not have tests
 async function collectionLoadHandler(req, res) {
     const collectionsCode = req.params.code;
     const dataPath = "/srv/data";
@@ -76,23 +83,32 @@ async function collectionLoadHandler(req, res) {
     // assign identifier to all entities
     const entitiesByDescriboId = {};
     const entitiesByAtId = {};
-    const rootDescriptor = crate["@graph"].filter((e) => e["@id"] === "ro-crate-metadata.json")[0];
+    let rootDescriptor;
+    for (let [i, e] of crate["@graph"].entries()) {
+        if (e["@id"] === "ro-crate-metadata.json") {
+            rootDescriptor = { ...e };
+            break;
+        }
+    }
+
     req.io
         .to(req.query.clientId)
-        .emit("load-collection-data", { msg: `Assigning identifiers`, date: new Date() });
+        .emit("load-collection-data", { msg: `Assigning entity identifiers`, date: new Date() });
     for (let entity of crate["@graph"]) {
         if (entity["@id"] === "ro-crate-metadata.json") entity.label = "RootDescriptor";
         if (entity["@id"] === rootDescriptor.about["@id"]) entity.label = "RootDataset";
         entity.describoId = createId();
-        (entity["@type"] = asArray(entity["@type"])),
-            (entitiesByDescriboId[entity.describoId] = entity);
+        entity["@type"] = asArray(entity["@type"]);
+        entitiesByDescriboId[entity.describoId] = entity;
         entitiesByAtId[entity["@id"]] = entity;
     }
 
     // prepare the entity and property DB inserts
-    req.io
-        .to(req.query.clientId)
-        .emit("load-collection-data", { msg: `Preparing inserts`, date: new Date() });
+    req.io.to(req.query.clientId).emit("load-collection-data", {
+        msg: `Preparing entity and property inserts`,
+        date: new Date(),
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const entityMainProperties = ["@id", "@type", "name", "label", "describoId"];
     let entityInserts = [];
     let propertyInserts = [];
@@ -144,6 +160,7 @@ async function collectionLoadHandler(req, res) {
             }
         }
     }
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // insert entities into the DB
     req.io
@@ -166,6 +183,7 @@ async function collectionLoadHandler(req, res) {
             msg: `Inserted ${total} entity records`,
             date: new Date(),
         });
+        await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     // insert properties into the DB
@@ -186,6 +204,7 @@ async function collectionLoadHandler(req, res) {
             msg: `Inserted ${total} property records`,
             date: new Date(),
         });
+        await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     const nEntities = await models.entity.count({ where: { collectionId } });
@@ -234,7 +253,6 @@ async function lookupEntities(req) {
 
 // TODO this code does not have tests
 async function loadEntity(req) {
-    console.log(req.params);
     let entity = await models.entity.findOne({
         where: {
             [Op.and]: [
