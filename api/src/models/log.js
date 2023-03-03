@@ -11,7 +11,8 @@ export default function (sequelize, DataTypes) {
                 defaultValue: DataTypes.UUIDV4,
             },
             level: {
-                type: DataTypes.ENUM("info", "warn", "error"),
+                // type: DataTypes.ENUM("info", "warn", "error"),
+                type: DataTypes.STRING,
                 defaultValue: "info",
                 allowNull: false,
             },

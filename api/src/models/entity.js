@@ -13,10 +13,10 @@ export default function (sequelize, DataTypes) {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
-            etype: {
-                type: DataTypes.STRING,
-                allowNull: false,
-            },
+            // etype: {
+            //     type: DataTypes.STRING,
+            //     allowNull: false,
+            // },
             name: {
                 type: DataTypes.TEXT,
                 allowNull: true,
@@ -33,9 +33,9 @@ export default function (sequelize, DataTypes) {
                     unique: true,
                     fields: ["collectionId", "eid"],
                 },
-                {
-                    fields: ["collectionId", "etype"],
-                },
+                // {
+                //     fields: ["collectionId", "etype"],
+                // },
                 {
                     fields: ["collectionId", "name"],
                 },
@@ -48,6 +48,11 @@ export default function (sequelize, DataTypes) {
             onDelete: "CASCADE",
             foreignKey: { allowNull: false },
             hooks: true,
+        });
+        Entity.belongsToMany(models.type, {
+            through: "entity_types",
+            as: "etype",
+            onDelete: "CASCADE",
         });
     };
 

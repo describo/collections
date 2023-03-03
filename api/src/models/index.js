@@ -3,6 +3,8 @@
 import Sequelize from "sequelize";
 import collection from "./collection.js";
 import entity from "./entity.js";
+import type from "./type.js";
+import entity_type from "./entity_type.js";
 import log from "./log.js";
 import property from "./property.js";
 import session from "./session.js";
@@ -35,7 +37,7 @@ let sequelize = new Sequelize(
     config.db
 );
 
-let modules = [user, session, log, property, entity, collection];
+let modules = [user, session, log, property, type, entity, entity_type, collection];
 
 // Initialize models
 modules.forEach((module) => {
