@@ -30,6 +30,7 @@
                 v-loading="data.loading"
                 v-model="data.selectedCollection"
                 placeholder="Select a collection to load"
+                clearable
                 @change="loadCollection"
                 class="w-full"
             >
