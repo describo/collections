@@ -73,9 +73,12 @@ async function collectionLoadHandler(req, res) {
         req.io
             .to(req.query.clientId)
             .emit("load-collection-data", { msg: `Deleting existing data`, date: new Date() });
-        await this.models.type.destroy({ where: { collectionId } });
-        await this.models.property.destroy({ where: { collectionId } });
-        await this.models.entity.destroy({ where: { collectionId } });
+        await this.models.entity.destroy({
+            where: { collectionId },
+            truncate: true,
+            cascade: true,
+        });
+        await this.models.type.destroy({ where: { collectionId }, truncate: true, cascade: true });
     } else {
         // complain loudly and bail if this collection already has data
         let entityCount = await models.entity.count({
@@ -315,7 +318,13 @@ async function loadEntity(req) {
             },
             {
                 model: models.property,
-                include: [{ model: models.entity, as: "targetEntity" }],
+                include: [
+                    {
+                        model: models.entity,
+                        as: "targetEntity",
+                        include: [{ model: models.type, as: "etype" }],
+                    },
+                ],
             },
         ],
     });
@@ -344,7 +353,7 @@ async function loadEntity(req) {
                 tgtEntityId: p.targetEntityId,
                 tgtEntity: {
                     "@id": p.targetEntity.eid,
-                    "@type": p.targetEntity.etype,
+                    "@type": p.targetEntity.etype.map((type) => type.name).join(", "),
                     name: p.targetEntity.name,
                 },
             });
