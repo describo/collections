@@ -13,10 +13,6 @@ export default function (sequelize, DataTypes) {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
-            // etype: {
-            //     type: DataTypes.STRING,
-            //     allowNull: false,
-            // },
             name: {
                 type: DataTypes.TEXT,
                 allowNull: true,
@@ -33,9 +29,6 @@ export default function (sequelize, DataTypes) {
                     unique: true,
                     fields: ["collectionId", "eid"],
                 },
-                // {
-                //     fields: ["collectionId", "etype"],
-                // },
                 {
                     fields: ["collectionId", "name"],
                 },
