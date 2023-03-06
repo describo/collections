@@ -1,22 +1,27 @@
 <template>
-    <div class="flex flex-col space-y-4"></div>
-    <div class="overflow-scroll" :class="panelHeight">
-        <!-- <pre>{{ data.entity }}</pre> -->
-        <DescriboCrateBuilderComponent
-            v-if="data.entity.describoId"
-            :entity="data.entity"
-            :crateManager="data.crateManager"
-            :mode="data.configuration.mode"
-            :configuration="data.configuration"
-            @load:entity="loadEntity"
-            @add:property="addProperty"
-            @save:property="saveProperty"
-            @delete:property="deleteProperty"
-            @ingest:entity="ingestEntity"
-            @link:entity="linkEntity"
-            @update:entity="updateEntity"
-            @delete:entity="deleteEntity"
-        />
+    <div class="flex flex-col">
+        <div class="bg-blue-100 sticky top-0 z-10 p-4 text-lg" v-if="data.entity.describoId">
+            {{ data.entity["@id"] }} -- {{ data.entity["@type"].join(", ") }}:
+            {{ data.entity.name }}
+        </div>
+        <div class="overflow-scroll" :class="panelHeight">
+            <!-- <pre>{{ data.entity }}</pre> -->
+            <DescriboCrateBuilderComponent
+                v-if="data.entity.describoId"
+                :entity="data.entity"
+                :crateManager="data.crateManager"
+                :mode="data.configuration.mode"
+                :configuration="data.configuration"
+                @load:entity="loadEntity"
+                @add:property="addProperty"
+                @save:property="saveProperty"
+                @delete:property="deleteProperty"
+                @ingest:entity="ingestEntity"
+                @link:entity="linkEntity"
+                @update:entity="updateEntity"
+                @delete:entity="deleteEntity"
+            />
+        </div>
     </div>
 </template>
 
@@ -59,7 +64,7 @@ const data = reactive({
     },
     debouncedLoadEntity: debounce(loadEntity, 300),
 });
-let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 50}px` }));
+let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 150}px` }));
 watch(
     () => $route.query.describoId,
     (n, o) => {
