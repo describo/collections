@@ -49,9 +49,21 @@
                 />
             </div>
             <el-table :data="data.entities" style="width: 100%" @row-click="loadEntity">
-                <el-table-column prop="@id" label="@id" width="300" />
-                <el-table-column prop="@type" label="@type" width="300" />
-                <el-table-column prop="name" label="Name" />
+                <el-table-column prop="@id" label="@id" width="300">
+                    <template #default="scope">
+                        <div class="hover:cursor-pointer">{{ scope.row["@id"] }}</div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="@type" label="@type" width="300">
+                    <template #default="scope">
+                        <div class="hover:cursor-pointer">{{ scope.row["@type"] }}</div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="name" label="Name">
+                    <template #default="scope">
+                        <div class="hover:cursor-pointer">{{ scope.row.name }}</div>
+                    </template>
+                </el-table-column>
             </el-table>
         </el-card>
     </div>
