@@ -23,6 +23,6 @@ let collections = computed(() => $store.state.myCollections);
 let activeCollection = computed(() => $route.params.code);
 
 function collectionLink(code) {
-    return `/collections/${code}`;
+    return `/collections/${code}/browse`;
 }
 </script>

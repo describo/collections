@@ -20,7 +20,8 @@ export function setupRoutes(fastify, options, done) {
         fastify.addHook("preHandler", requireCollectionAccess);
         fastify.get("/collections/:code/profile", getCollectionProfileHandler);
         fastify.get("/collections/:code/load", collectionLoadHandler);
-        fastify.get("/collections/:code/entities", lookupEntities);
+        fastify.get("/collections/:code/entities", getEntities);
+        fastify.get("/collections/:code/types", getEntityTypesHandler);
         fastify.get("/collections/:code/entities/:entityId", loadEntity);
         fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
         fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
@@ -265,37 +266,62 @@ async function collectionLoadHandler(req, res) {
 }
 
 // TODO this code does not have tests
-async function lookupEntities(req) {
-    // console.log(req.session.collection);
-    console.log(req.query.queryString);
+async function getEntities(req) {
     const queryString = req.query.queryString;
-    let matches = await models.entity.findAll({
+    const type = req.query.type;
+    let matches, total;
+    if (queryString) {
+        ({ rows: matches, count: total } = await models.entity.findAndCountAll({
+            where: {
+                collectionId: req.session.collection.id,
+                [Op.or]: [
+                    {
+                        eid: {
+                            [Op.iLike]: `${queryString}%`,
+                        },
+                    },
+                    {
+                        name: {
+                            [Op.iLike]: `${queryString}%`,
+                        },
+                    },
+                ],
+            },
+            include: [{ model: models.type, as: "etype" }],
+            limit: 10,
+        }));
+    } else if (type) {
+        const limit = req.query.limit ?? 10;
+        const offset = req.query.offset ?? 0;
+        ({ rows: matches, count: total } = await models.entity.findAndCountAll({
+            where: {
+                collectionId: req.session.collection.id,
+            },
+            include: [{ model: models.type, as: "etype", where: { name: type } }],
+            limit,
+            offset,
+        }));
+    }
+    matches = matches.map((m) => ({
+        describoId: m.id,
+        "@id": m.eid,
+        "@type": m.etype.map((type) => type.name).join(", "),
+        name: m.name,
+    }));
+    return { matches, total };
+}
+
+// TODO this code does not have tests
+async function getEntityTypesHandler(req) {
+    let types = await models.type.findAll({
         where: {
             collectionId: req.session.collection.id,
-            [Op.or]: [
-                {
-                    eid: {
-                        [Op.iLike]: `${queryString}%`,
-                    },
-                },
-                {
-                    name: {
-                        [Op.iLike]: `${queryString}%`,
-                    },
-                },
-            ],
         },
-        limit: 10,
+        order: [["name", "ASC"]],
+        attributes: ["id", "name"],
+        raw: true,
     });
-
-    return {
-        matches: matches.map((m) => ({
-            describoId: m.id,
-            eid: m.eid,
-            etype: m.etype,
-            name: m.name,
-        })),
-    };
+    return { types };
 }
 
 // TODO this code does not have tests
