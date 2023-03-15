@@ -25,6 +25,11 @@
         </el-card>
 
         <el-card>
+            <template #header>Connect to Collection</template>
+            <ConnectToCollectionComponent />
+        </el-card>
+
+        <el-card>
             <template #header>Load Collection Data</template>
             <el-select
                 v-loading="data.loading"
@@ -51,7 +56,9 @@
         </el-card>
     </div>
 </template>
+
 <script setup>
+import ConnectToCollectionComponent from "./ConnectToCollection.component.vue";
 import { reactive, computed, inject } from "vue";
 import { useStore } from "vuex";
 import { io } from "socket.io-client";

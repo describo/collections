@@ -7,6 +7,7 @@ export function setupRoutes(fastify, options, done) {
 
     fastify.get("/admin", async (req, res) => {});
     fastify.post("/admin/collections/create", postCreateCollectionHandler);
+    fastify.post("/admin/collections/:collectionId/attach-self", postAttachSelfToCollectionHandler);
     done();
 }
 
@@ -20,4 +21,11 @@ async function postCreateCollectionHandler(req) {
     });
     collection = collection[0];
     await collection.addUser(user);
+}
+
+// TODO this code does not have tests
+async function postAttachSelfToCollectionHandler(req) {
+    const { collectionId } = req.params;
+    let collection = await models.collection.findOne({ where: { id: collectionId } });
+    await collection.addUser(req.session.user);
 }
