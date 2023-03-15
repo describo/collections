@@ -13,21 +13,31 @@
 </template>
 
 <script setup>
-import { reactive, inject } from "vue";
+import { reactive, watch, inject } from "vue";
 const $http = inject("$http");
 
+const props = defineProps({
+    refresh: {},
+});
+const $emit = defineEmits(["updated"]);
 const data = reactive({
     collections: [],
 });
 getCollections();
+watch(
+    () => props.refresh,
+    () => {
+        getCollections();
+    }
+);
 
 async function getCollections() {
     let response = await $http.get({ route: "/admin/collections" });
     if (response.status === 200) data.collections = (await response.json()).collections;
+    $emit("updated");
 }
 
 async function connectToCollection(collection) {
-    await $http.post({ route: `/admin/collections/${collection.id}/attach-self` });
-    console.log(collection);
+    await $http.post({ route: `/admin/collections/${collection.code}/attach-self` });
 }
 </script>

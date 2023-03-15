@@ -26,26 +26,40 @@
 
         <el-card>
             <template #header>Connect to Collection</template>
-            <ConnectToCollectionComponent />
+            <ConnectToCollectionComponent :refresh="data.refresh" @updated="data.refresh = false" />
         </el-card>
 
         <el-card>
             <template #header>Load Collection Data</template>
-            <el-select
-                v-loading="data.loading"
-                v-model="data.selectedCollection"
-                placeholder="Select a collection to load"
-                clearable
-                @change="loadCollection"
-                class="w-full"
-            >
-                <el-option
-                    v-for="item in myCollections"
-                    :key="item.code"
-                    :label="item.name"
-                    :value="item.code"
-                />
-            </el-select>
+            <div class="flex flex-row space-x-2">
+                <div class="flex flex-col w-1/2">
+                    <div>Select an RO Crate file to upload</div>
+                    <input
+                        ref="upload"
+                        type="file"
+                        placeholder="Select an RO Crate file to upload"
+                    />
+                </div>
+
+                <div class="flex flex-col w-1/2">
+                    <div>Select the collection to load it into</div>
+                    <el-select
+                        v-loading="data.loading"
+                        v-model="data.selectedCollection"
+                        placeholder="Select a collection to load"
+                        clearable
+                        @change="loadCollection"
+                        class="w-full"
+                    >
+                        <el-option
+                            v-for="item in myCollections"
+                            :key="item.code"
+                            :label="item.name"
+                            :value="item.code"
+                        />
+                    </el-select>
+                </div>
+            </div>
             <el-table
                 :data="data.collectionDataLoadingLogs"
                 v-if="data.collectionDataLoadingLogs.length"
@@ -59,7 +73,7 @@
 
 <script setup>
 import ConnectToCollectionComponent from "./ConnectToCollection.component.vue";
-import { reactive, computed, inject } from "vue";
+import { reactive, ref, computed, inject } from "vue";
 import { useStore } from "vuex";
 import { io } from "socket.io-client";
 import { parseISO, format } from "date-fns";
@@ -69,8 +83,10 @@ const $socket = io();
 $socket.on("load-collection-data", ({ msg, date }) => {
     data.collectionDataLoadingLogs.push({ msg, date: format(parseISO(date), "PPpp") });
 });
+const upload = ref(null);
 
 const data = reactive({
+    fileList: undefined,
     loading: false,
     form: {
         name: undefined,
@@ -87,15 +103,31 @@ let myCollections = computed(() => $store.state.myCollections);
 
 async function onSubmit() {
     await $http.post({ route: "/admin/collections/create", body: data.form });
+    data.refresh = true;
     $store.dispatch("getMyCollections");
 }
 async function loadCollection(code) {
-    data.loading = true;
     data.collectionDataLoadingLogs = [];
-    let response = await $http.get({
-        route: `/collections/${code}/load`,
-        params: { clientId: $socket.id },
+    if (!code) return;
+    const [file] = upload.value.files;
+    if (file && code) {
+        let fileData = await readFile(file);
+        await $http.post({
+            route: `/admin/collections/${code}/load-data`,
+            params: { clientId: $socket.id },
+            body: { crate: fileData },
+        });
+    }
+}
+
+async function readFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+            let filedata = reader.result;
+            resolve(JSON.parse(filedata));
+        });
+        reader.readAsText(file);
     });
-    data.loading = false;
 }
 </script>
