@@ -1,6 +1,6 @@
 FROM nginx:latest
-LABEL org.opencontainers.image.source=https://github.com/CoEDL/nyingarn-workspace
-LABEL org.opencontainers.image.description="The Nyingarn Workspace UI container"
+LABEL org.opencontainers.image.source=https://github.com/describo/describo-collections-ui
+LABEL org.opencontainers.image.description="The Describo Collections UI container"
 LABEL org.opencontainers.image.licenses=GPLv3
 
 RUN apt-get update && apt-get install -y nginx-extras
