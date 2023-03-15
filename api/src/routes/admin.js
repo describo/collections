@@ -6,6 +6,7 @@ export function setupRoutes(fastify, options, done) {
     fastify.addHook("preHandler", demandAdministrator);
 
     fastify.get("/admin", async (req, res) => {});
+    fastify.get("/admin/collections", getCollectionsHandler);
     fastify.post("/admin/collections/create", postCreateCollectionHandler);
     fastify.post("/admin/collections/:collectionId/attach-self", postAttachSelfToCollectionHandler);
     done();
@@ -21,6 +22,19 @@ async function postCreateCollectionHandler(req) {
     });
     collection = collection[0];
     await collection.addUser(user);
+}
+
+// TODO this code does not have tests
+async function getCollectionsHandler(req) {
+    let { limit, offset } = req.query;
+    limit = limit ?? 10;
+    offset = offset ?? 0;
+    let { rows: collections, count: total } = await models.collection.findAndCountAll({
+        attributes: ["id", "name", "code"],
+        limit,
+        offset,
+    });
+    return { collections: collections.map((c) => c.get()), total };
 }
 
 // TODO this code does not have tests

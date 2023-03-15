@@ -22,7 +22,7 @@ const data = reactive({
 getCollections();
 
 async function getCollections() {
-    let response = await $http.get({ route: "/collections" });
+    let response = await $http.get({ route: "/admin/collections" });
     if (response.status === 200) data.collections = (await response.json()).collections;
 }
 
