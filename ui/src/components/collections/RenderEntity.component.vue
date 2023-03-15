@@ -1,8 +1,12 @@
 <template>
     <div class="flex flex-col">
-        <div class="bg-blue-100 sticky top-0 z-10 p-4 text-lg" v-if="data.entity.describoId">
-            {{ data.entity["@id"] }} -- {{ data.entity["@type"].join(", ") }}:
-            {{ data.entity.name }}
+        <div class="bg-blue-100 sticky top-0 z-10 p-4 flex flex-col" v-if="data.entity.describoId">
+            <div class="text-sm">
+                {{ data.entity["@type"].join(", ") }}
+            </div>
+            <div class="text-lg">
+                {{ data.entity.name }}
+            </div>
         </div>
         <div class="overflow-scroll" :class="panelHeight">
             <!-- <pre>{{ data.entity }}</pre> -->
