@@ -48,11 +48,16 @@ async function requireCollectionAccess(req, res) {
 
 // TODO this code does not have tests
 async function getCollectionsHandler(req) {
-    let collections = await models.collection.findAll({
+    let { limit, offset } = req.query;
+    limit = limit ?? 10;
+    offset = offset ?? 0;
+    let { rows: collections, count: total } = await models.collection.findAndCountAll({
         attributes: ["id", "name", "code"],
         include: [{ model: models.user, where: { id: req.session.user.id }, attributes: [] }],
+        limit,
+        offset,
     });
-    return { collections: collections.map((c) => c.get()) };
+    return { collections: collections.map((c) => c.get()), total };
 }
 
 // TODO this code does not have tests
