@@ -23,8 +23,6 @@ read -p '>> Tag the repo (select N if you are still testing the builds)? [y|N] '
 if [ "$resp" == "y" ] ; then
     cd api
     npm version --no-git-tag-version ${VERSION}
-    cd ../tasks
-    npm version --no-git-tag-version ${VERSION}
     cd ../ui
     npm version --no-git-tag-version ${VERSION}
     cd ..
