@@ -221,7 +221,7 @@ async function collectionLoadHandler(req, res) {
     chunkSize = getChunkSize(entityTypeInserts);
     for (let records of chunk(entityTypeInserts, chunkSize)) {
         const total = records.length;
-        await this.models.entity_types.bulkCreate(records);
+        await this.models.entity_types.bulkCreate(records, { ignoreDuplicates: true });
         req.io.to(req.query.clientId).emit("load-collection-data", {
             msg: `Inserted ${total} entity type associations`,
             date: new Date(),
@@ -277,12 +277,12 @@ async function getEntities(req) {
                 [Op.or]: [
                     {
                         eid: {
-                            [Op.iLike]: `${queryString}%`,
+                            [Op.iLike]: `%${queryString}%`,
                         },
                     },
                     {
                         name: {
-                            [Op.iLike]: `${queryString}%`,
+                            [Op.iLike]: `%${queryString}%`,
                         },
                     },
                 ],
@@ -293,14 +293,18 @@ async function getEntities(req) {
     } else if (type) {
         const limit = req.query.limit ?? 10;
         const offset = req.query.offset ?? 0;
-        ({ rows: matches, count: total } = await models.entity.findAndCountAll({
-            where: {
-                collectionId: req.session.collection.id,
-            },
-            include: [{ model: models.type, as: "etype", where: { name: type } }],
-            limit,
-            offset,
-        }));
+        matches = await models.type.findAll({
+            where: { name: type },
+            include: [
+                {
+                    model: models.entity,
+                    as: "entities",
+                    include: [{ model: models.type, as: "etype", where: { name: type } }],
+                },
+            ],
+        });
+        total = matches[0].entities.length;
+        matches = matches[0].entities.slice(offset, offset + limit);
     }
     matches = matches.map((m) => ({
         describoId: m.id,
