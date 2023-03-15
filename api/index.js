@@ -25,7 +25,10 @@ const envToLogger = {
     production: true,
     test: false,
 };
-const fastify = Fastify({ logger: envToLogger[process.env.NODE_ENV] });
+const fastify = Fastify({
+    logger: envToLogger[process.env.NODE_ENV],
+    bodyLimit: 256 * 1024 * 1024,
+});
 
 main();
 async function main() {
