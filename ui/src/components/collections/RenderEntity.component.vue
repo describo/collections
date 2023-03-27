@@ -9,6 +9,7 @@
             </div>
         </div>
         <div class="overflow-scroll" :class="panelHeight">
+            {{ data.configuration }}
             <!-- <pre>{{ data.entity }}</pre> -->
             <DescriboCrateBuilderComponent
                 v-if="data.entity.describoId"
