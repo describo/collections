@@ -43,7 +43,7 @@ if [ "$resp" == "y" ] ; then
         -v ui_node_modules:/srv/ui/node_modules \
         -w /srv/ui node:14-buster bash -l -c "npm run build"
     docker buildx build --push --rm --platform linux/amd64 \
-        -t ghcr.io/coedl/describo-collections-ui:latest \
-        -t ghcr.io/coedl/describo-collections-ui:${VERSION} \
+        -t ghcr.io/describo/describo-collections-ui:latest \
+        -t ghcr.io/describo/describo-collections-ui:${VERSION} \
         -f Dockerfile.ui-build .
 fi
