@@ -44,6 +44,6 @@ const data = reactive({
     ],
 });
 function enableProvider(name) {
-    return this.$store.state.configuration.authentication.includes(name);
+    return $store.state.configuration.authentication.includes(name);
 }
 </script>
