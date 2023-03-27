@@ -1,5 +1,5 @@
 FROM nginx:latest
-LABEL org.opencontainers.image.source=https://github.com/describo/describo-collections-ui
+LABEL org.opencontainers.image.source=https://github.com/describo/collections
 LABEL org.opencontainers.image.description="The Describo Collections UI container"
 LABEL org.opencontainers.image.licenses=GPLv3
 

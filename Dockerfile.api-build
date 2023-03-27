@@ -1,5 +1,5 @@
 FROM  --platform=$TARGETPLATFORM node:18-bullseye-slim
-LABEL org.opencontainers.image.source=https://github.com/describo/describo-collections-api
+LABEL org.opencontainers.image.source=https://github.com/describo/collections
 LABEL org.opencontainers.image.description="The Describo Collections API container"
 LABEL org.opencontainers.image.licenses=GPLv3
 
