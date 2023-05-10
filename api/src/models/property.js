@@ -26,6 +26,9 @@ export default function (sequelize, DataTypes) {
             timestamps: true,
             indexes: [
                 {
+                    fields: ["entityId"],
+                },
+                {
                     fields: ["targetEntityId"],
                 },
             ],

@@ -7,6 +7,7 @@ import { setupRoutes as setupBaseRoutes } from "./src/routes/base.js";
 import { setupRoutes as setupCollectionRoutes } from "./src/routes/collection.js";
 import { setupRoutes as setupLogRoutes } from "./src/routes/logs.js";
 import { setupRoutes as setupUserRoutes } from "./src/routes/user.js";
+import { setupRoutes as setupProfileRoutes } from "./src/routes/profile.js";
 
 import Fastify from "fastify";
 import fastifyCompress from "@fastify/compress";
@@ -65,6 +66,7 @@ async function main() {
     fastify.register(setupCollectionRoutes);
     fastify.register(setupLogRoutes);
     fastify.register(setupUserRoutes);
+    fastify.register(setupProfileRoutes);
 
     fastify.listen({ port: 8080, host: "0.0.0.0" }, function (err, address) {
         if (err) {

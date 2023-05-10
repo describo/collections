@@ -14,8 +14,12 @@ export function setupRoutes(fastify, options, done) {
     fastify.get("/admin", async (req, res) => {});
     fastify.get("/admin/collections", getCollectionsHandler);
     fastify.post("/admin/collections/create", postCreateCollectionHandler);
-
-    fastify.post("/admin/collections/:code/attach-self", postAttachSelfToCollectionHandler);
+    fastify.get("/admin/collections/:code/users", getCollectionUsersHandler);
+    fastify.post("/admin/collections/:code/attach-user/:userId", postAttachUserToCollectionHandler);
+    fastify.post(
+        "/admin/collections/:code/detach-user/:userId",
+        postDetachUserFromCollectionHandler
+    );
     fastify.post("/admin/collections/:code/load-data", postLoadDataIntoCollectionHandler);
     done();
 }
@@ -46,10 +50,31 @@ async function getCollectionsHandler(req) {
 }
 
 // TODO this code does not have tests
-async function postAttachSelfToCollectionHandler(req) {
+async function getCollectionUsersHandler(req) {
     const { code } = req.params;
     let collection = await models.collection.findOne({ where: { code } });
-    await collection.addUser(req.session.user);
+    let users = await collection.getUsers({
+        attributes: ["id", "email", "givenName", "familyName"],
+    });
+    return { users };
+}
+
+// TODO this code does not have tests
+async function postAttachUserToCollectionHandler(req) {
+    const { code, userId } = req.params;
+    let user = await models.user.findOne({ where: { id: userId } });
+    let collection = await models.collection.findOne({ where: { code } });
+    await collection.addUser(user);
+    return {};
+}
+
+// TODO this code does not have tests
+async function postDetachUserFromCollectionHandler(req) {
+    const { code, userId } = req.params;
+    let user = await models.user.findOne({ where: { id: userId } });
+    let collection = await models.collection.findOne({ where: { code } });
+    await collection.removeUser(user);
+    return {};
 }
 
 // TODO this code does not have tests

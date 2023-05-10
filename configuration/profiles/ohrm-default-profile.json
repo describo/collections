@@ -1,0 +1,908 @@
+{
+    "metadata": {
+        "name": "OHRM Default Profile",
+        "description": "A default OHRM profile for Describo Collections",
+        "version": 0.1,
+        "warnMissingProperty": true
+    },
+    "context": [
+        "https://w3id.org/ro/crate/1.1/context",
+        {
+            "ohrm": "http://ohrm.ontology.somewhere"
+        }
+    ],
+    "resolve": {
+        "Relationship": ["source", "target"],
+        "Related": ["source", "target"]
+    },
+    "classes": {
+        "Entity": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "ohrm:organisationCode",
+                    "name": "organisationCode",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:subName",
+                    "name": "subName",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:legalNumber",
+                    "name": "legalNumber",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDate",
+                    "name": "startDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateModifier",
+                    "name": "startDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateISOString",
+                    "name": "startDateISOString",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:endDate",
+                    "name": "endDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateModifier",
+                    "name": "endDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateISOString",
+                    "name": "endDateISOString",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:dateQualifier",
+                    "name": "dateQualifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:legalStatus",
+                    "name": "legalStatus",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:function",
+                    "name": "function",
+                    "help": "",
+                    "type": ["Function"]
+                },
+                {
+                    "id": "ohrm:summaryNote",
+                    "name": "summaryNote",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:fullNote",
+                    "name": "fullNote",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:gender",
+                    "name": "gender",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:reference",
+                    "name": "reference",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:processingNotes",
+                    "name": "processingNotes",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:recordAppendDate",
+                    "name": "recordAppendDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:recordLastModified",
+                    "name": "recordLastModified",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:logo",
+                    "name": "logo",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:online",
+                    "name": "online",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:gallery",
+                    "name": "gallery",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:owner",
+                    "name": "owner",
+                    "help": "",
+                    "type": ["Person"]
+                },
+                {
+                    "id": "ohrm:rating",
+                    "name": "rating",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:status",
+                    "name": "status",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:preparedBy",
+                    "name": "preparedBy",
+                    "help": "",
+                    "type": ["Organisation"]
+                },
+                {
+                    "id": "ohrm:birthPlace",
+                    "name": "birthPlace",
+                    "help": "",
+                    "type": ["Place"]
+                },
+                {
+                    "id": "ohrm:birthState",
+                    "name": "birthState",
+                    "help": "",
+                    "type": ["State"]
+                },
+                {
+                    "id": "ohrm:birthCountry",
+                    "name": "birthCountry",
+                    "help": "",
+                    "type": ["Country"]
+                },
+                {
+                    "id": "ohrm:deathPlace",
+                    "name": "deathPlace",
+                    "help": "",
+                    "type": ["Place"]
+                },
+                {
+                    "id": "ohrm:deathState",
+                    "name": "deathState",
+                    "help": "",
+                    "type": ["State"]
+                },
+                {
+                    "id": "ohrm:deathCountry",
+                    "name": "deathCountry",
+                    "help": "",
+                    "type": ["Country"]
+                },
+                {
+                    "id": "ohrm:nationality",
+                    "name": "nationality",
+                    "help": "",
+                    "type": ["Nationality"]
+                }
+            ]
+        },
+        "DigitalObject": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "ohrm:startDate",
+                    "name": "startDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateModifier",
+                    "name": "startDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateISOString",
+                    "name": "startDateISOString",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:endDate",
+                    "name": "endDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateModifier",
+                    "name": "endDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateISOString",
+                    "name": "endDateISOString",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:physicalDescription",
+                    "name": "physicalDescription",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:resourceCreator",
+                    "name": "resourceCreator",
+                    "help": "",
+                    "type": ["Person"]
+                },
+                {
+                    "id": "ohrm:controlCode",
+                    "name": "controlCode",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:note",
+                    "name": "note",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:objectIPRights",
+                    "name": "objectIPRights",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:processingNotes",
+                    "name": "processingNotes",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:outputStatus",
+                    "name": "outputStatus",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:recordAppendDate",
+                    "name": "recordAppendDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:recordLastModified",
+                    "name": "recordLastModified",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:place",
+                    "name": "place",
+                    "help": "",
+                    "type": ["Place"]
+                },
+                {
+                    "id": "ohrm:hasFile",
+                    "name": "hasFile",
+                    "help": "",
+                    "type": ["File", "DigitalObjectVersion"]
+                },
+                {
+                    "id": "ohrm:linkedArchivalResource",
+                    "name": "linkedArchivalResource",
+                    "help": "",
+                    "type": ["ArchiveResource", "HeritageResource"]
+                },
+                {
+                    "id": "ohrm:linkedPublishedResource",
+                    "name": "linkedPublishedResource",
+                    "help": "",
+                    "type": ["PublishedResource"]
+                }
+            ]
+        },
+        "DigitalObjectVersion": {
+            "definition": "override",
+            "subClassOf": ["DigitalObject"],
+            "inputs": [
+                {
+                    "id": "ohrm:format",
+                    "name": "format",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:primaryVersion",
+                    "name": "primaryVersion",
+                    "help": "",
+                    "type": ["DigitalObject"]
+                },
+                {
+                    "id": "ohrm:imageOrientation",
+                    "name": "imageOrientation",
+                    "help": "",
+                    "type": ["Text"]
+                }
+            ]
+        },
+        "Function": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "ohrm:startDate",
+                    "name": "startDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateModifier",
+                    "name": "startDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateISOString",
+                    "name": "startDateISOString",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:endDate",
+                    "name": "endDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateModifier",
+                    "name": "endDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateISOString",
+                    "name": "endDateISOString",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:dateQualifier",
+                    "name": "dateQualifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:recordAppendDate",
+                    "name": "recordAppendDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:recordLastModified",
+                    "name": "recordLastModified",
+                    "help": "",
+                    "type": ["Date"]
+                }
+            ]
+        },
+        "ArchivalResource": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "ohrm:repositoryId",
+                    "name": "repositoryId",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:archiveIdentifier",
+                    "name": "archiveIdentifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:archiveLink",
+                    "name": "archiveLink",
+                    "help": "",
+                    "type": ["Text", "URL"]
+                },
+                {
+                    "id": "ohrm:resourceLanguage",
+                    "name": "resourceLanguage",
+                    "help": "",
+                    "type": ["Language"]
+                },
+                {
+                    "id": "ohrm:startDate",
+                    "name": "startDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateModifier",
+                    "name": "startDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateISOString",
+                    "name": "startDateISOString",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:endDate",
+                    "name": "endDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateModifier",
+                    "name": "endDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateISOString",
+                    "name": "endDateISOString",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:linearMetres",
+                    "name": "linearMetres",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:numberOfItems",
+                    "name": "numberOfItems",
+                    "help": "",
+                    "type": ["Number"]
+                },
+                {
+                    "id": "ohrm:typeOfItems",
+                    "name": "typeOfItems",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:formatOfItems",
+                    "name": "formatOfItems",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:accessConditions",
+                    "name": "accessConditions",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:organisationalIdentifier",
+                    "name": "organisationalIdentifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:recordCreationDate",
+                    "name": "recordCreationDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:recordLastModifiedDate",
+                    "name": "recordLastModifiedDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:resourceCreator",
+                    "name": "resourceCreator",
+                    "help": "",
+                    "type": ["Person"]
+                },
+                {
+                    "id": "ohrm:levelOfCollection",
+                    "name": "levelOfCollection",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:processingNote",
+                    "name": "processingNote",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:outputStatus",
+                    "name": "outputStatus",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:preparedBy",
+                    "name": "preparedBy",
+                    "help": "",
+                    "type": ["Person"]
+                }
+            ]
+        },
+        "ArchiveResource": {
+            "definition": "override",
+            "subClassOf": ["ArchivalResource"],
+            "inputs": []
+        },
+        "HeritageResource": {
+            "definition": "override",
+            "subClassOf": ["ArchivalResource"],
+            "inputs": []
+        },
+        "PublishedResource": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "ohrm:online",
+                    "name": "online",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:author",
+                    "name": "author",
+                    "help": "",
+                    "type": ["Person"]
+                },
+                {
+                    "id": "ohrm:secondaryAuthor",
+                    "name": "secondaryAuthor",
+                    "help": "",
+                    "type": ["Person"]
+                },
+                {
+                    "id": "ohrm:publicationYear",
+                    "name": "publicationYear",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:secondaryTitle",
+                    "name": "secondaryTitle",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:publisher",
+                    "name": "publisher",
+                    "help": "",
+                    "type": ["Organization"]
+                },
+                {
+                    "id": "ohrm:volume",
+                    "name": "volume",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:numberOfVolumes",
+                    "name": "numberOfVolumes",
+                    "help": "",
+                    "type": ["Number"]
+                },
+                {
+                    "id": "ohrm:number",
+                    "name": "number",
+                    "help": "",
+                    "type": ["Number"]
+                },
+                {
+                    "id": "ohrm:numberOfPages",
+                    "name": "numberOfPages",
+                    "help": "",
+                    "type": ["Number"]
+                },
+                {
+                    "id": "ohrm:edition",
+                    "name": "edition",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:publicationDate",
+                    "name": "publicationDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:isbn_issn",
+                    "name": "isbn_issn",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:referenceSource",
+                    "name": "referenceSource",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:abstract",
+                    "name": "abstract",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:notes",
+                    "name": "notes",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:classification",
+                    "name": "classification",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:url",
+                    "name": "url",
+                    "help": "",
+                    "type": ["URL"]
+                },
+                {
+                    "id": "ohrm:urlType",
+                    "name": "urlType",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:dateAccessed",
+                    "name": "dateAccessed",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:format",
+                    "name": "format",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:contentLanguage",
+                    "name": "contentLanguage",
+                    "help": "",
+                    "type": ["Language"]
+                },
+                {
+                    "id": "ohrm:contains",
+                    "name": "contains",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:recordAppendDate",
+                    "name": "recordAppendDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:recordLastModified",
+                    "name": "recordLastModified",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:descriptionOfWork",
+                    "name": "descriptionOfWork",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:catalogueId",
+                    "name": "catalogueId",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:processingNotes",
+                    "name": "processingNotes",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:outputStatus",
+                    "name": "outputStatus",
+                    "help": "",
+                    "type": ["Text"]
+                }
+            ]
+        },
+        "Relationship": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "ohrm:source",
+                    "name": "source",
+                    "help": "",
+                    "type": ["ANY_ENTITY"]
+                },
+                {
+                    "id": "ohrm:target",
+                    "name": "target",
+                    "help": "",
+                    "type": ["ANY_ENTITY"]
+                },
+                {
+                    "id": "ohrm:description",
+                    "name": "description",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:startDate",
+                    "name": "startDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateModifier",
+                    "name": "startDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:startDateISOString",
+                    "name": "startDateISOString",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:endDate",
+                    "name": "endDate",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateModifier",
+                    "name": "endDateModifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:endDateISOString",
+                    "name": "endDateISOString",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:dateQualifier",
+                    "name": "dateQualifier",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:recordAppendDate",
+                    "name": "recordAppendDate",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:recordLastModified",
+                    "name": "recordLastModified",
+                    "help": "",
+                    "type": ["Date"]
+                },
+                {
+                    "id": "ohrm:processingNotes",
+                    "name": "processingNotes",
+                    "help": "",
+                    "type": ["TextArea"]
+                },
+                {
+                    "id": "ohrm:relationshipStrength",
+                    "name": "relationshipStrength",
+                    "help": "",
+                    "type": ["Text"]
+                },
+                {
+                    "id": "ohrm:place",
+                    "name": "place",
+                    "help": "",
+                    "type": ["Place"]
+                }
+            ]
+        },
+        "EntityArchivalResourceRelationship": {
+            "definition": "override",
+            "subClassOf": ["Relationship"],
+            "inputs": [
+                {
+                    "id": "ohrm:citation",
+                    "name": "citation",
+                    "help": "",
+                    "type": ["TextArea"]
+                }
+            ]
+        },
+        "EntityDigitalObjectRelationship": {
+            "definition": "override",
+            "subClassOf": ["Relationship"],
+            "inputs": [
+                {
+                    "id": "ohrm:citation",
+                    "name": "citation",
+                    "help": "",
+                    "type": ["TextArea"]
+                }
+            ]
+        },
+        "EntityFunctionRelationship": {
+            "definition": "override",
+            "subClassOf": ["Relationship"],
+            "inputs": [
+                {
+                    "id": "ohrm:rating",
+                    "name": "rating",
+                    "help": "",
+                    "type": ["Text"]
+                }
+            ]
+        }
+    },
+    "lookup": {
+        "Language": {
+            "fields": [
+                "@id",
+                "name",
+                "alternateName",
+                "iso639-3",
+                "austlangCode",
+                "glottologCode",
+                "languageCode"
+            ],
+            "datapacks": []
+        }
+    }
+}
