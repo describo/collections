@@ -72,12 +72,9 @@ const data = reactive({
 });
 let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 150}px` }));
 
-onBeforeMount(async () => {
+onMounted(async () => {
     await getProfile();
-});
-
-onMounted(() => {
-    loadEntity({ describoId: $route.query.describoId });
+    await loadEntity({ describoId: $route.query.describoId });
     data.watcher = watch(
         () => $route.query.describoId,
         (n, o) => {
@@ -91,8 +88,8 @@ onBeforeUnmount(() => {
     data.watcher();
 });
 
-function refresh() {
-    loadEntity({ describoId: $route.query.describoId });
+async function refresh() {
+    await loadEntity({ describoId: $route.query.describoId });
 }
 
 async function getProfile() {
