@@ -70,6 +70,16 @@
 </template>
 
 <script setup>
+import {
+    ElCard,
+    ElButton,
+    ElAutocomplete,
+    ElSelect,
+    ElOption,
+    ElPagination,
+    ElTable,
+    ElTableColumn,
+} from "element-plus";
 import { reactive, inject, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 // import { useStore } from "vuex";
