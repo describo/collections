@@ -355,6 +355,7 @@ async function getEntity({ id, collectionId, withProperties = true }) {
     };
     if (withProperties) {
         query.include.push({
+            required: false,
             where: { entityId: id },
             model: models.property,
             include: [
