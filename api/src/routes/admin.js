@@ -4,7 +4,7 @@ import fsExtraPkg from "fs-extra";
 const { pathExists, readJSON } = fsExtraPkg;
 import { init } from "@paralleldrive/cuid2";
 import lodashPkg from "lodash";
-const { isArray, isPlainObject, isString, chunk, groupBy } = lodashPkg;
+const { isArray, isPlainObject, isString, chunk, groupBy, uniqBy } = lodashPkg;
 const createId = init({ length: 32 });
 
 export function setupRoutes(fastify, options, done) {
@@ -132,21 +132,26 @@ async function postLoadDataIntoCollectionHandler(req, res) {
     let types = {};
     for (let entity of crate["@graph"]) {
         if (entity["@id"] === "ro-crate-metadata.json") entity.label = "RootDescriptor";
-        if (entity["@id"] === rootDescriptor.about["@id"]) entity.label = "RootDataset";
-        entity.describoId = createId();
+        if (entity["@id"] === rootDescriptor.about["@id"]) {
+            entity.label = "RootDataset";
+            entity.describoId = "RootDataset";
+        } else {
+            entity.describoId = createId();
+        }
         entity["@type"] = asArray(entity["@type"]);
         entity["@type"].forEach((type) => (types[type] = true));
         entitiesByDescriboId[entity.describoId] = entity;
         entitiesByAtId[entity["@id"]] = entity;
     }
 
-    const typeInserts = Object.keys(types).map((type) => {
+    let typeInserts = Object.keys(types).map((type) => {
         return {
             id: createId(),
             name: type,
             collectionId,
         };
     });
+    typeInserts = uniqBy(typeInserts, "name");
     const typeNameToIdMapping = groupBy(typeInserts, "name");
     await this.models.type.bulkCreate(typeInserts);
 
@@ -183,7 +188,7 @@ async function postLoadDataIntoCollectionHandler(req, res) {
             if (!entity[property]) continue;
             for (let instance of entity[property]) {
                 if (!entityMainProperties.includes(property)) {
-                    if (isString(instance)) {
+                    if (!isArray(instance) && !isPlainObject(instance)) {
                         propertyInserts.push({
                             id: createId(),
                             property,
