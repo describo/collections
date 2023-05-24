@@ -24,7 +24,7 @@ export function setupRoutes(fastify, options, done) {
     done();
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function postCreateCollectionHandler(req) {
     let { name, code } = req.body;
     let user = req.session.user;
@@ -36,7 +36,7 @@ async function postCreateCollectionHandler(req) {
     await collection.addUser(user);
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function getCollectionsHandler(req) {
     let { limit, offset } = req.query;
     limit = limit ?? 10;
@@ -49,7 +49,7 @@ async function getCollectionsHandler(req) {
     return { collections: collections.map((c) => c.get()), total };
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function getCollectionUsersHandler(req) {
     const { code } = req.params;
     let collection = await models.collection.findOne({ where: { code } });
@@ -59,7 +59,7 @@ async function getCollectionUsersHandler(req) {
     return { users };
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function postAttachUserToCollectionHandler(req) {
     const { code, userId } = req.params;
     let user = await models.user.findOne({ where: { id: userId } });
@@ -68,7 +68,7 @@ async function postAttachUserToCollectionHandler(req) {
     return {};
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function postDetachUserFromCollectionHandler(req) {
     const { code, userId } = req.params;
     let user = await models.user.findOne({ where: { id: userId } });
@@ -77,7 +77,7 @@ async function postDetachUserFromCollectionHandler(req) {
     return {};
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function postLoadDataIntoCollectionHandler(req, res) {
     const crate = req.body.crate;
     let collection = await models.collection.findOne({

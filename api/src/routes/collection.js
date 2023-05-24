@@ -1,11 +1,8 @@
 import { demandAuthenticatedUser } from "../common/index.js";
 import fsExtraPkg from "fs-extra";
 const { pathExists, readJSON } = fsExtraPkg;
-import path from "path";
-import { ROCrate } from "ro-crate";
 import { Op } from "sequelize";
 import models from "../models/index.js";
-import { v4 as uuidv4 } from "uuid";
 import { init } from "@paralleldrive/cuid2";
 import lodashPkg from "lodash";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
@@ -35,7 +32,7 @@ export function setupRoutes(fastify, options, done) {
     done();
 }
 
-// TODO: this code does not have tests
+// TODO: this code does not have tests yet
 async function requireCollectionAccess(req, res) {
     let collection = await models.collection.findOne({
         where: { code: req.params.code },
@@ -47,7 +44,7 @@ async function requireCollectionAccess(req, res) {
     req.session.collection = collection;
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function getCollectionsHandler(req) {
     let { limit, offset } = req.query;
     limit = limit ?? 10;
@@ -61,7 +58,7 @@ async function getCollectionsHandler(req) {
     return { collections: collections.map((c) => c.get()), total };
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function getCollectionProfileHandler(req) {
     console.log("load collection profile");
     return { profile: {} };
@@ -321,7 +318,7 @@ async function getEntities(req) {
     return { matches, total };
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function getEntityTypesHandler(req) {
     let types = await models.type.findAll({
         where: {
@@ -387,7 +384,7 @@ async function getEntity({ id, collectionId, withProperties = true }) {
     return entity;
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function loadEntity(req) {
     console.time(`entity load time: ${req.params.entityId}`);
     let entity = await getEntity({
@@ -475,7 +472,7 @@ async function loadEntity(req) {
     return { entity: entityData };
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function createEntityHandler(req) {
     let { entity, property } = req.body;
 
@@ -506,7 +503,7 @@ async function createEntityHandler(req) {
     });
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function deleteEntityHandler(req) {
     // delete the new entity
     await this.models.entity.destroy({
@@ -517,7 +514,7 @@ async function deleteEntityHandler(req) {
     });
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function updateEntityHandler(req) {
     let entity = await this.models.entity.findOne({
         where: { id: req.params.entityId, collectionId: req.session.collection.id },
@@ -527,7 +524,7 @@ async function updateEntityHandler(req) {
     await entity.save();
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function addPropertyHandler(req) {
     await this.models.property.create({
         id: createId(),
@@ -538,7 +535,7 @@ async function addPropertyHandler(req) {
     });
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function updatePropertyHandler(req) {
     let property = await this.models.property.findOne({
         where: { id: req.params.propertyId, collectionId: req.session.collection.id },
@@ -547,7 +544,7 @@ async function updatePropertyHandler(req) {
     await property.save();
 }
 
-// TODO this code does not have tests
+// TODO this code does not have tests yet
 async function deletePropertyHandler(req) {
     let property = await this.models.property.findOne({
         where: { id: req.params.propertyId, collectionId: req.session.collection.id },
