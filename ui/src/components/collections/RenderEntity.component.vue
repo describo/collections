@@ -33,6 +33,7 @@
 import { vLoading } from "element-plus";
 // import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
 import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
+import { ProfileManager } from "/srv/describo/src/crate-builder/profile-manager.js";
 import { reactive, inject, computed, watch, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
@@ -94,13 +95,16 @@ async function refresh() {
 
 async function getProfile() {
     let response = await $http.get({
-        route: `/profile/${$route.params.code}`,
+        route: `/collections/${$route.params.code}/profile`,
     });
     if (response.status !== 200) {
         // handle the error
     }
     response = await response.json();
     data.profile = response.profile;
+    const profileManager = new ProfileManager({ profile: data.profile });
+    data.crateManager.profile = data.profile;
+    data.crateManager.profileManager = profileManager;
 }
 async function loadEntity({ describoId, label }) {
     let response = await $http.get({
@@ -111,6 +115,7 @@ async function loadEntity({ describoId, label }) {
     }
     response = await response.json();
     data.entity = response.entity;
+
     $router.push({ query: { describoId } });
 }
 // IMPLEMENTED
