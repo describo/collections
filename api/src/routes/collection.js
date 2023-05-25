@@ -60,8 +60,8 @@ async function getCollectionsHandler(req) {
 
 // TODO this code does not have tests yet
 async function getCollectionProfileHandler(req) {
-    console.log("load collection profile");
-    return { profile: {} };
+    let collection = await models.collection.findOne({ where: { id: req.session.collection.id } });
+    return { profile: collection.profile ?? {} };
 }
 
 // // TODO this code does not have tests
