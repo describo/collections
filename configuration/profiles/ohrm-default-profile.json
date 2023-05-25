@@ -330,7 +330,7 @@
                     "id": "ohrm:linkedArchivalResource",
                     "name": "linkedArchivalResource",
                     "help": "",
-                    "type": ["ArchiveResource", "HeritageResource"]
+                    "type": ["ArchivalResource"]
                 },
                 {
                     "id": "ohrm:linkedPublishedResource",
