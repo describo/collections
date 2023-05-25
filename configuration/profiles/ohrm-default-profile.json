@@ -568,16 +568,6 @@
                 }
             ]
         },
-        "ArchiveResource": {
-            "definition": "override",
-            "subClassOf": ["ArchivalResource"],
-            "inputs": []
-        },
-        "HeritageResource": {
-            "definition": "override",
-            "subClassOf": ["ArchivalResource"],
-            "inputs": []
-        },
         "PublishedResource": {
             "definition": "override",
             "subClassOf": [],
@@ -891,18 +881,5 @@
             ]
         }
     },
-    "lookup": {
-        "Language": {
-            "fields": [
-                "@id",
-                "name",
-                "alternateName",
-                "iso639-3",
-                "austlangCode",
-                "glottologCode",
-                "languageCode"
-            ],
-            "datapacks": []
-        }
-    }
+    "lookup": {}
 }
