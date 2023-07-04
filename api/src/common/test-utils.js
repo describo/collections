@@ -66,7 +66,6 @@ export class TestSetup {
     async teardownAfterAll(configuration) {
         await models.log.truncate();
         await models.collection.destroy({ where: {} });
-        await models.item.destroy({ where: {} });
         await models.user.destroy({ where: {} });
         models.sequelize.close();
     }
