@@ -1,15 +1,5 @@
 import "regenerator-runtime";
-import fetch from "node-fetch";
-import { createUser } from "../lib/user";
 const chance = require("chance").Chance();
-import {
-    getStoreHandle,
-    TestSetup,
-    headers,
-    host,
-    loadConfiguration,
-    generateToken,
-} from "../common/index.js";
 import {
     createNewCollection,
     getAllCollections,
@@ -171,5 +161,4 @@ describe("Test the admin endpoints", () => {
         await collection.destroy();
         await user.destroy();
     });
-    test("it should be able to load a very basic ro crate into a collection", async () => {});
 });

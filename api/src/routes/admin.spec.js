@@ -3,6 +3,8 @@ import fetch from "node-fetch";
 import { TestSetup, headers, host } from "../common";
 import { createSession } from "../lib/session";
 import models from "../models/index.js";
+import { readJSON } from "fs-extra";
+import path from "path";
 
 describe("Test the admin endpoints", () => {
     let users, userEmail, adminEmail, configuration, bucket;
@@ -196,6 +198,40 @@ describe("Test the admin endpoints", () => {
 
         await models.collection.destroy({ where: { id: collection.id } });
     });
+    test.only("it should be able to load a very basic ro crate into a collection", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
 
-    test("it should be able to load a very basic ro crate into a collection", async () => {});
+        // create a collection
+        let response = await fetch(`${host}/admin/collections/create`, {
+            method: "POST",
+            headers: headers(session),
+            body: JSON.stringify({
+                name: "x",
+                code: "y",
+            }),
+        });
+        expect(response.status).toEqual(200);
+        let { collection } = await response.json();
+        const collectionId = collection.id;
+
+        const crate = await readJSON(
+            path.join(__dirname, "../../../data/TEST/ro-crate-metadata.json")
+        );
+
+        response = await fetch(`${host}/admin/collections/${collectionId}/load-data`, {
+            method: "POST",
+            headers: headers(session),
+            body: JSON.stringify({ crate }),
+        });
+        expect(response.status).toEqual(200);
+
+        let entities = await models.entity.findAll({ where: { collectionId } });
+        expect(entities.length).toEqual(8);
+
+        await models.type.destroy({ where: { collectionId } });
+        await models.property.destroy({ where: { collectionId } });
+        await models.entity.destroy({ where: { collectionId } });
+        await models.collection.destroy({ where: { id: collection.id } });
+    });
 });
