@@ -7,6 +7,8 @@ import lodashPkg from "lodash";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 const { isArray, intersection, cloneDeep, isPlainObject, isString, chunk, groupBy } = lodashPkg;
 
+import { getEntityTypes, getEntities } from "../lib/collection.js";
+
 export function setupRoutes(fastify, options, done) {
     fastify.addHook("preHandler", demandAuthenticatedUser);
 
@@ -16,8 +18,6 @@ export function setupRoutes(fastify, options, done) {
         fastify.addHook("preHandler", requireCollectionAccess);
         fastify.get("/collections/:code/profile", getCollectionProfileHandler);
         // fastify.get("/collections/:code/load", collectionLoadHandler);
-        fastify.get("/collections/:code/entities", getEntities);
-        fastify.get("/collections/:code/types", getEntityTypesHandler);
         fastify.get("/collections/:code/entities/:entityId", loadEntity);
         fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
         fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
@@ -25,6 +25,9 @@ export function setupRoutes(fastify, options, done) {
         fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
         fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
         fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
+
+        fastify.get("/collections/:collectionId/types", getEntityTypesHandler);
+        fastify.get("/collections/:collectionId/entities", getEntitiesHandler);
         done();
     });
     done();
@@ -33,7 +36,7 @@ export function setupRoutes(fastify, options, done) {
 // TODO: this code does not have tests yet
 async function requireCollectionAccess(req, res) {
     let collection = await models.collection.findOne({
-        where: { code: req.params.code },
+        where: { id: req.params.collectionId },
         include: [{ model: models.user, where: { id: req.session.user.id }, attributes: [] }],
     });
     if (!collection) {
@@ -63,66 +66,23 @@ async function getCollectionProfileHandler(req) {
 }
 
 // TODO this code does not have tests
-async function getEntities(req) {
-    const queryString = req.query.queryString;
-    const type = req.query.type;
-    let matches, total;
-    if (queryString) {
-        ({ rows: matches, count: total } = await models.entity.findAndCountAll({
-            where: {
-                collectionId: req.session.collection.id,
-                [Op.or]: [
-                    {
-                        eid: {
-                            [Op.iLike]: `%${queryString}%`,
-                        },
-                    },
-                    {
-                        name: {
-                            [Op.iLike]: `%${queryString}%`,
-                        },
-                    },
-                ],
-            },
-            include: [{ model: models.type, as: "etype" }],
-            limit: 10,
-        }));
-    } else if (type) {
-        const limit = req.query.limit ?? 10;
-        const offset = req.query.offset ?? 0;
-        matches = await models.type.findAll({
-            where: { name: type },
-            include: [
-                {
-                    model: models.entity,
-                    as: "entities",
-                    include: [{ model: models.type, as: "etype", where: { name: type } }],
-                },
-            ],
-        });
-        total = matches[0].entities.length;
-        matches = matches[0].entities.slice(offset, offset + limit);
-    }
-    matches = matches.map((m) => ({
-        describoId: m.id,
-        "@id": m.eid,
-        "@type": m.etype.map((type) => type.name).join(", "),
-        name: m.name,
-    }));
-    return { matches, total };
+async function getEntitiesHandler(req) {
+    // todo
+    const { type, queryString, limit, offset } = req.query;
+    console.log(type, queryString, limit, offset);
+    return await getEntities({
+        collectionId: req.session.collection.id,
+        type,
+        queryString,
+        limit,
+        offset,
+    });
+    return {};
 }
 
 // TODO this code does not have tests yet
 async function getEntityTypesHandler(req) {
-    let types = await models.type.findAll({
-        where: {
-            collectionId: req.session.collection.id,
-        },
-        order: [["name", "ASC"]],
-        attributes: ["id", "name"],
-        raw: true,
-    });
-    return { types };
+    return await getEntityTypes({ collectionId: req.session.collection.id });
 }
 
 async function getEntity({ id, collectionId, withProperties = true }) {
