@@ -10,6 +10,7 @@ const {
     isBoolean,
     isEqual,
     isUndefined,
+    isEmpty,
     groupBy,
     chunk,
     round,
@@ -111,6 +112,7 @@ export async function loadCrateIntoDatabase({ crate, collectionId, io, clientId 
     });
     if (entityCount !== 0) {
         message({ text: `The collection is not empty so that crate can't be loaded into it` });
+        return;
     }
 
     message({ text: `Preparing the data inserts` });
@@ -136,7 +138,18 @@ export async function loadCrateIntoDatabase({ crate, collectionId, io, clientId 
     let chunkSize = getChunkSize(entityInserts);
     // insert entity records
     for (let records of chunk(entityInserts, chunkSize)) {
-        await models.entity.bulkCreate(records, {});
+        try {
+            await models.entity.bulkCreate(records, {});
+        } catch (error) {
+            for (records of chunk(records, 10)) {
+                try {
+                    await models.entity.bulkCreate(records, {});
+                } catch (error) {
+                    console.log(records);
+                }
+            }
+            continue;
+        }
         recordsInserted += records.length;
         percent = round((recordsInserted / totalInserts) * 100, 0);
         message({ percent });
@@ -145,7 +158,18 @@ export async function loadCrateIntoDatabase({ crate, collectionId, io, clientId 
     // create entity -> type associations
     chunkSize = getChunkSize(entityTypeInserts);
     for (let records of chunk(entityTypeInserts, chunkSize)) {
-        await models.entity_types.bulkCreate(records, {});
+        try {
+            await models.entity_types.bulkCreate(records, {});
+        } catch (error) {
+            for (records of chunk(records, 10)) {
+                try {
+                    await models.entity_types.bulkCreate(records, {});
+                } catch (error) {
+                    console.log(records);
+                }
+            }
+            continue;
+        }
         recordsInserted += records.length;
         percent = round((recordsInserted / totalInserts) * 100, 0);
         message({ percent });
@@ -154,7 +178,18 @@ export async function loadCrateIntoDatabase({ crate, collectionId, io, clientId 
     //  insert property records
     chunkSize = getChunkSize(propertyInserts);
     for (let records of chunk(propertyInserts, chunkSize)) {
-        await models.property.bulkCreate(records);
+        try {
+            await models.property.bulkCreate(records);
+        } catch (error) {
+            for (records of chunk(records, 10)) {
+                try {
+                    await models.property.bulkCreate(records, {});
+                } catch (error) {
+                    console.log(records);
+                }
+            }
+            continue;
+        }
         recordsInserted += records.length;
         percent = round((recordsInserted / totalInserts) * 100, 0);
         message({ percent });
@@ -164,16 +199,17 @@ export async function loadCrateIntoDatabase({ crate, collectionId, io, clientId 
     message({ text: `The crate has been loaded into the database` });
 
     function getChunkSize(inserts) {
-        let chunkSize = 100;
-        if (inserts.length < 10000) {
-            chunkSize = 5000;
-        } else if (inserts.length < 100000) {
-            chunkSize = 20000;
-        } else if (inserts.length < 1000000) {
-            chunkSize = 50000;
-        } else {
-            chunkSize = 50000;
-        }
+        // let chunkSize = 100;
+        // if (inserts.length < 10000) {
+        //     chunkSize = 5000;
+        // } else if (inserts.length < 100000) {
+        //     chunkSize = 20000;
+        // } else if (inserts.length < 1000000) {
+        //     chunkSize = 50000;
+        // } else {
+        //     chunkSize = 50000;
+        // }
+        let chunkSize = 5000;
         return chunkSize;
     }
 }
@@ -327,7 +363,7 @@ async function prepareDataInserts({ collectionId, crate }) {
                         id: uuidv4(),
                         property,
                         entityId: mapAtIdToEntityUUID[entity["@id"]],
-                        value: instance,
+                        value: !isEmpty(instance) ?? "",
                         collectionId,
                     });
                 }
