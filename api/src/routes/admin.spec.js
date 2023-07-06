@@ -198,7 +198,7 @@ describe("Test the admin endpoints", () => {
 
         await models.collection.destroy({ where: { id: collection.id } });
     });
-    test.only("it should be able to load a very basic ro crate into a collection", async () => {
+    test("it should be able to load a very basic ro crate into a collection", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
 
