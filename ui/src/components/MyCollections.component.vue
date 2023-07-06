@@ -2,9 +2,9 @@
     <div class="flex flex-col">
         <div v-for="collection of collections" :key="collection.id">
             <router-link
-                :to="collectionLink(collection.code)"
+                :to="collectionLink(collection.id)"
                 class="text-xl text-gray-800"
-                :class="{ 'text-blue-600': activeCollection === collection.code }"
+                :class="{ 'text-blue-600': activeCollection === collection.id }"
             >
                 {{ collection.code }}
             </router-link>
@@ -20,9 +20,9 @@ const $store = useStore();
 const $route = useRoute();
 
 let collections = computed(() => $store.state.myCollections);
-let activeCollection = computed(() => $route.params.code);
+let activeCollection = computed(() => $route.params.collectionId);
 
-function collectionLink(code) {
-    return `/collections/${code}/browse`;
+function collectionLink(collectionId) {
+    return `/collections/${collectionId}/browse`;
 }
 </script>
