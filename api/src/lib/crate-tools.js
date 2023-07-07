@@ -302,10 +302,11 @@ async function prepareDataInserts({ collectionId, crate }) {
         mapAtIdToEntityUUID[entity["@id"]] = id;
 
         // prepare the entity -> type inserts
-        for (let type of entity["@type"]) {
+        for (let [index, type] of entity["@type"].entries()) {
             entityTypeInserts.push({
                 entityId: mapAtIdToEntityUUID[entity["@id"]],
                 typeId: types[type].id,
+                order: index,
             });
         }
     }
@@ -346,6 +347,7 @@ async function prepareDataInserts({ collectionId, crate }) {
                         entityTypeInserts.push({
                             entityId: id,
                             typeId: types[type].id,
+                            order: 0,
                         });
 
                         // and then link it
