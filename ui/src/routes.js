@@ -25,7 +25,7 @@ const routes = [
             { name: "dashboard", path: "dashboard", component: DashboardComponent },
             {
                 name: "collections",
-                path: "collections/:code",
+                path: "collections/:collectionId",
                 component: CollectionsComponent,
                 props: true,
                 children: [

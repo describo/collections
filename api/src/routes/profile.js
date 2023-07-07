@@ -24,26 +24,26 @@ async function getDefaultProfileHandler(req) {
 async function getProfileHandler(req) {
     const { collectionId } = req.params;
     let collection = await models.collection.findOne({ where: { id: collectionId } });
-    let types = await models.type.findAll({
-        where: { collectionId },
-        attributes: ["name"],
-        raw: true,
-    });
-    let profile = collection.profile ?? cloneDeep(defaultProfile);
-    types = types.map((type) => type.name);
-    types = types.sort();
-    types.forEach((type) => {
-        if (!profile.classes[type]?.subClassOf?.length) {
-            profile.classes[type] = {
-                definition: "override",
-                subClassOf: [],
-                inputs: [],
-                // inputs: [...defaultProfile.classes["Entity"].inputs],
-            };
-        }
-    });
+    // let types = await models.type.findAll({
+    //     where: { collectionId },
+    //     attributes: ["name"],
+    //     raw: true,
+    // });
+    // let profile = collection.profile ?? cloneDeep(defaultProfile);
+    // types = types.map((type) => type.name);
+    // types = types.sort();
+    // types.forEach((type) => {
+    //     if (!profile.classes[type]?.subClassOf?.length) {
+    //         profile.classes[type] = {
+    //             definition: "override",
+    //             subClassOf: [],
+    //             inputs: [],
+    //             // inputs: [...defaultProfile.classes["Entity"].inputs],
+    //         };
+    //     }
+    // });
     // console.log(profile.classes);
-    return { profile };
+    return { profile: collection.profile ?? {} };
 }
 
 // TODO: this code does not have tests yet

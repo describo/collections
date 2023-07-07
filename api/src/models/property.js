@@ -6,8 +6,9 @@ export default function (sequelize, DataTypes) {
         {
             id: {
                 primaryKey: true,
-                type: DataTypes.STRING(32),
+                type: DataTypes.UUID,
                 allowNull: false,
+                defaultValue: DataTypes.UUIDV4,
             },
             property: {
                 type: DataTypes.STRING,

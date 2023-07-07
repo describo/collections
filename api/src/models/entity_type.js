@@ -10,6 +10,9 @@ export default function (sequelize, DataTypes) {
             type: DataTypes.STRING(32),
             allowNull: false,
         },
+        order: {
+            type: DataTypes.INTEGER,
+        },
     });
     EntityType.associate = function (models) {};
 

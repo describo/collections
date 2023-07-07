@@ -27,7 +27,7 @@ describe("Test the /authenticated endpoint", () => {
         identifier = chance.word();
         store = await getStoreHandle({
             id: identifier,
-            className: "collection",
+            type: "collection",
         });
     });
     afterEach(async () => {

@@ -25,18 +25,19 @@
                             v-for="item in myCollections"
                             :key="item.code"
                             :label="item.name"
-                            :value="item.code"
+                            :value="item.id"
                         />
                     </el-select>
                 </div>
             </div>
-            <el-table
-                :data="data.collectionDataLoadingLogs"
-                v-if="data.collectionDataLoadingLogs.length"
-            >
-                <el-table-column prop="msg" label="Message" />
-                <el-table-column prop="date" label="Date" width="250" />
-            </el-table>
+            <div v-if="data.collectionDataLoadingLogs.length" class="mt-6">
+                <div v-for="log of data.collectionDataLoadingLogs">
+                    <div v-if="log.msg.text">{{ log.date }} {{ log.msg.text }}</div>
+                </div>
+                <div v-if="data.collectionDataLoadingPercentage < 100">
+                    <el-progress :percentage="data.collectionDataLoadingPercentage" />
+                </div>
+            </div>
         </el-card>
     </div>
 </template>
@@ -51,7 +52,11 @@ const $http = inject("$http");
 const $store = useStore();
 const $socket = io();
 $socket.on("load-collection-data", ({ msg, date }) => {
-    data.collectionDataLoadingLogs.push({ msg, date: format(parseISO(date), "PPpp") });
+    if (msg.text) {
+        data.collectionDataLoadingLogs.push({ msg, date: format(parseISO(date), "PPpp") });
+    } else if (msg.percent) {
+        data.collectionDataLoadingPercentage = msg.percent;
+    }
 });
 const upload = ref(null);
 
@@ -63,18 +68,19 @@ const data = reactive({
     },
     selectedCollection: undefined,
     collectionDataLoadingLogs: [],
+    collectionDataLoadingPercentage: 0,
 });
 
 let myCollections = computed(() => $store.state.myCollections);
 
-async function loadCollection(code) {
+async function loadCollection(collectionId) {
     data.collectionDataLoadingLogs = [];
-    if (!code) return;
+    if (!collectionId) return;
     const [file] = upload.value.files;
-    if (file && code) {
+    if (file && collectionId) {
         let fileData = await readFile(file);
         await $http.post({
-            route: `/admin/collections/${code}/load-data`,
+            route: `/admin/collections/${collectionId}/load-data`,
             params: { clientId: $socket.id },
             body: { crate: fileData },
         });

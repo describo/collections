@@ -9,6 +9,7 @@ import {
 } from "./user";
 const chance = require("chance").Chance();
 import { TestSetup } from "../common";
+import models from "../models/index.js";
 
 describe("User management tests", () => {
     let configuration, users, userEmail, adminEmail, bucket;
@@ -16,6 +17,8 @@ describe("User management tests", () => {
     const tester = new TestSetup();
 
     beforeAll(async () => {
+        await models.user.destroy({ where: {} });
+
         ({ userEmail, adminEmail, configuration, bucket } = await tester.setupBeforeAll());
         users = await tester.setupUsers({ emails: [userEmail], adminEmails: [adminEmail] });
     });

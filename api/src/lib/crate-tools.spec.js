@@ -1,50 +1,74 @@
-require("regenerator-runtime");
-import { registerAllFiles } from "./crate-tools.js";
+import "regenerator-runtime";
+import { readJSON } from "fs-extra";
 const chance = require("chance").Chance();
-import { getStoreHandle, TestSetup, setupTestItem } from "../common";
-import { ROCrate } from "ro-crate";
-import models from "../models";
+import { createNewCollection } from "./admin.js";
+import { loadCrateIntoDatabase, isMatchingEntity } from "./crate-tools";
+import path from "path";
+import models from "../models/index.js";
 
-describe("Crate tools tests", () => {
-    let configuration, users, userEmail, adminEmail, bucket;
-    let identifier, store;
-    const tester = new TestSetup();
-
-    beforeAll(async () => {
-        ({ userEmail, adminEmail, configuration, bucket } = await tester.setupBeforeAll());
-        users = await tester.setupUsers({ emails: [userEmail], adminEmails: [adminEmail] });
-    });
-    beforeEach(async () => {
-        identifier = chance.word();
-        store = await getStoreHandle({
-            id: identifier,
-            className: "item",
+describe("Test the crate tools methods", () => {
+    test("it should be able load a very basic crate into the database ", async () => {
+        const user = await models.user.create({
+            email: chance.email(),
+            provider: chance.word(),
+            locked: false,
+            upload: true,
+            administrator: true,
         });
-    });
-    afterEach(async () => {
-        try {
-            await store.deleteItem();
-        } catch (error) {}
-    });
-    afterAll(async () => {
-        await tester.purgeUsers({ users });
-        await tester.teardownAfterAll(configuration);
-    });
-    it("should be able to register all item files in the crate", async () => {
-        let store = await getStoreHandle({
-            id: identifier,
-            className: "item",
+        const collection = await createNewCollection({
+            name: "x",
+            code: "y",
+            user,
         });
-        //  setup as a normal user
-        let user = users.filter((u) => !u.administrator)[0];
-        await setupTestItem({ identifier, store, user });
-        let crate = await store.getJSON({ target: "ro-crate-metadata.json" });
-        crate = new ROCrate(crate, { array: true });
+        const collectionId = collection.id;
+        const crate = await readJSON(
+            path.join(__dirname, "../../../data/TEST/ro-crate-metadata.json")
+        );
+        await loadCrateIntoDatabase({ collectionId, crate });
 
-        await registerAllFiles({ store, crate });
-        expect(crate.rootDataset.hasPart.length).toBe(4);
+        const entities = (await models.entity.findAll({ where: { collectionId } })).map((e) =>
+            e.get()
+        );
+        expect(entities.length).toEqual(8);
 
-        await models.item.destroy({ where: { identifier } });
-        await store.deleteItem();
+        const properties = (await models.property.findAll({ where: { collectionId } })).map((e) =>
+            e.get()
+        );
+        expect(properties.length).toEqual(4);
+
+        const types = (await models.type.findAll({ where: { collectionId } })).map((e) => e.get());
+        expect(types.length).toEqual(8);
+
+        await models.entity.destroy({ where: { collectionId } });
+        await models.property.destroy({ where: { collectionId } });
+        await models.type.destroy({ where: { collectionId } });
+        await collection.destroy();
+        await user.destroy();
+    });
+    test("it should be able to determine if two entities match or not", () => {
+        // they match
+        let a = { "@id": "x", "@type": "Person" };
+        let b = { "@id": "x", "@type": "Person" };
+        expect(isMatchingEntity(a, b)).toEqual(true);
+
+        // they match
+        a = { "@id": "x", "@type": "Person" };
+        b = { "@id": "x", "@type": ["Person"] };
+        expect(isMatchingEntity(a, b)).toEqual(true);
+
+        // they match
+        a = { "@id": "x", "@type": ["Person", "Tall"] };
+        b = { "@id": "x", "@type": ["Tall", "Person"] };
+        expect(isMatchingEntity(a, b)).toEqual(true);
+
+        // they don't match
+        a = { "@id": "x", "@type": ["Person", "Tall"] };
+        b = { "@id": "y", "@type": ["Tall", "Person"] };
+        expect(isMatchingEntity(a, b)).toEqual(false);
+
+        // they don't match
+        a = { "@id": "x", "@type": "Person" };
+        b = { "@id": "x", "@type": ["Tall", "Person"] };
+        expect(isMatchingEntity(a, b)).toEqual(false);
     });
 });
