@@ -3,9 +3,9 @@ import fsExtraPkg from "fs-extra";
 const { pathExists, readJSON } = fsExtraPkg;
 import { Op } from "sequelize";
 import models from "../models/index.js";
-import lodashPkg from "lodash";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
-const { isArray, intersection, cloneDeep, isPlainObject, isString, chunk, groupBy } = lodashPkg;
+import lodashPkg from "lodash";
+const { orderBy, groupBy } = lodashPkg;
 
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
     let where = {
@@ -79,7 +79,7 @@ export async function loadEntity({ collectionId, id, stub = false }) {
                 {
                     model: models.entity,
                     as: "targetEntity",
-                    include: [{ model: models.type, as: "etype" }],
+                    include: [{ model: models.type, as: "etype", order: [["order", "ASC"]] }],
                 },
             ],
         });
@@ -113,11 +113,10 @@ export async function loadEntity({ collectionId, id, stub = false }) {
 function assembleEntity({ entity }) {
     let e = {
         "@id": entity.eid,
-        "@type": entity.etype.map((t) => t.name),
+        "@type": assembleEntityType(entity.etype),
         name: entity.name,
     };
     let properties = entity.properties.map((p) => {
-        // console.log(p);
         if (p?.value) {
             return {
                 idx: p.id,
@@ -130,7 +129,7 @@ function assembleEntity({ entity }) {
                 property: p.property,
                 tgtEntity: {
                     "@id": p.targetEntity.eid,
-                    "@type": p.targetEntity.etype.map((t) => t.name),
+                    "@type": assembleEntityType(p.targetEntity.etype),
                     name: p.targetEntity.name,
                     associations: [],
                 },
@@ -145,8 +144,6 @@ function assembleEntity({ entity }) {
         });
     }
     e["@properties"] = properties;
-    // console.log(JSON.stringify(properties, null, 2));
-    // console.log(JSON.stringify(e, null, 2));
     return e;
 }
 
@@ -156,7 +153,7 @@ async function assembleEntityReverseConnections({ entity }) {
         include: [
             {
                 model: models.entity,
-                include: [{ model: models.type, as: "etype" }],
+                include: [{ model: models.type, as: "etype", order: [["createdAt", "ASC"]] }],
             },
         ],
     });
@@ -164,7 +161,7 @@ async function assembleEntityReverseConnections({ entity }) {
         return {
             property: p.property,
             "@id": p.entity.eid,
-            "@type": p.entity.etype.map((t) => t.name),
+            "@type": assembleEntityType(p.entity.etype),
             name: p.entity.name,
         };
     });
@@ -176,6 +173,13 @@ async function assembleEntityReverseConnections({ entity }) {
         });
     }
     return reverse;
+}
+
+function assembleEntityType(types) {
+    types = types.map((t) => ({ name: t.name, order: t.entity_types.order }));
+    types = orderBy(types, "order");
+    types = types.map((t) => t.name);
+    return types;
 }
 
 // TODO this code does not have tests yet
