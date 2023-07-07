@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col" v-if="data.entity.describoId">
+    <div class="flex flex-col" v-if="data.entity?.['@id']">
         <div class="bg-blue-100 sticky top-0 z-10 p-4 flex flex-col">
             <div class="text-sm">
                 {{ data.entity["@type"].join(", ") }}
@@ -30,8 +30,6 @@
 </template>
 
 <script setup>
-import { vLoading } from "element-plus";
-// import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
 import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
 import { ProfileManager } from "/srv/describo/src/crate-builder/profile-manager.js";
 import { reactive, inject, computed, watch, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
@@ -41,6 +39,7 @@ import { debounce } from "lodash";
 const $route = useRoute();
 const $router = useRouter();
 const $http = inject("$http");
+const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 const data = reactive({
     entity: {},
@@ -75,12 +74,12 @@ let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 150}px
 
 onMounted(async () => {
     await getProfile();
-    await loadEntity({ describoId: $route.query.describoId });
+    await loadEntity({ id: $route.query.id });
     data.watcher = watch(
-        () => $route.query.describoId,
+        () => $route.query.id,
         (n, o) => {
-            if (data.entity.describoId !== $route.query.describoId && $route.query.describoId)
-                data.debouncedLoadEntity({ describoId: $route.query.describoId });
+            if (data.entity.id !== $route.query.id && $route.query.id)
+                data.debouncedLoadEntity({ id: $route.query.id });
         }
     );
 });
@@ -90,12 +89,12 @@ onBeforeUnmount(() => {
 });
 
 async function refresh() {
-    await loadEntity({ describoId: $route.query.describoId });
+    await loadEntity({ id: $route.query.id });
 }
 
 async function getProfile() {
     let response = await $http.get({
-        route: `/collections/${$route.params.code}/profile`,
+        route: `/collections/${$route.params.collectionId}/profile`,
     });
     if (response.status !== 200) {
         // handle the error
@@ -106,17 +105,17 @@ async function getProfile() {
     data.crateManager.profile = data.profile;
     data.crateManager.profileManager = profileManager;
 }
-async function loadEntity({ describoId, label }) {
+async function loadEntity({ id }) {
+    if (base64regex.test(id)) id = atob(id);
     let response = await $http.get({
-        route: `/collections/${$route.params.code}/entities/${describoId ?? label}`,
+        route: `/collections/${$route.params.collectionId}/entities/${encodeURIComponent(id)}`,
     });
     if (response.status !== 200) {
         // handle the error
     }
     response = await response.json();
     data.entity = response.entity;
-
-    $router.push({ query: { describoId } });
+    $router.push({ query: { id: btoa(id) } });
 }
 // IMPLEMENTED
 async function saveProperty({ propertyId, value }) {

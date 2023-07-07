@@ -22,6 +22,7 @@
                     :fetch-suggestions="getEntities"
                     clearable
                     placeholder="Search for an entity to work with"
+                    :debounce="500"
                     @select="loadEntity"
                 >
                     <template #default="{ item }">
@@ -36,8 +37,9 @@
 <script setup>
 import { ElCard, ElAutocomplete, ElSelect, ElOption } from "element-plus";
 import { reactive, inject } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 const $route = useRoute();
+const $router = useRouter();
 const $http = inject("$http");
 
 const data = reactive({
@@ -62,7 +64,7 @@ async function getEntityTypes() {
 }
 
 async function getEntities(query, cb) {
-    if (query.length < 3) return cb([]);
+    // if (query.length < 3) return cb([]);
     let offset = (data.page - 1) * data.limit;
     let response = await $http.get({
         route: `/collections/${$route.params.collectionId}/entities`,
@@ -80,6 +82,6 @@ async function getEntities(query, cb) {
     cb(data.entities);
 }
 async function loadEntity(entity) {
-    console.log(entity);
+    $router.push({ name: "collections.entity", query: { id: btoa(entity["@id"]) } });
 }
 </script>
