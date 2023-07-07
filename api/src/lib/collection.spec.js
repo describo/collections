@@ -107,8 +107,9 @@ describe("Test the collection lib endpoints", () => {
         expect(total).toEqual(1);
         expect(entities).toEqual([]);
     });
-    test("it should be able to load an entities from the database", async () => {
+    test("it should be able to load a specific entity from the database", async () => {
         let entity = await loadEntity({ collectionId, id: "./" });
+        // console.log(JSON.stringify(entity, null, 2));
         expect(entity).toMatchObject({
             "@id": "./",
             "@type": ["Dataset"],
@@ -116,7 +117,6 @@ describe("Test the collection lib endpoints", () => {
             "@properties": {
                 author: [
                     {
-                        idx: /.*/,
                         tgtEntity: {
                             "@id": "#AAAA",
                             "@type": ["Entity", "Person"],
@@ -138,6 +138,7 @@ describe("Test the collection lib endpoints", () => {
         });
 
         entity = await loadEntity({ collectionId, id: "#AAAA" });
+        // console.log(JSON.stringify(entity, null, 2));
         expect(entity).toMatchObject({
             "@id": "#AAAA",
             "@type": ["Entity", "Person"],
@@ -145,7 +146,6 @@ describe("Test the collection lib endpoints", () => {
             "@properties": {
                 relatedTo: [
                     {
-                        idx: /.*/,
                         tgtEntity: {
                             "@id": "#BBBB",
                             "@type": ["Entity", "Organisation", "Hotel"],

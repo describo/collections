@@ -17,12 +17,12 @@ export function setupRoutes(fastify, options, done) {
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", requireCollectionAccess);
         // fastify.get("/collections/:code/load", collectionLoadHandler);
-        fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
-        fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
-        fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
-        fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
-        fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
-        fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
+        // fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
+        // fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
+        // fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
+        // fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
+        // fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
+        // fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
 
         fastify.get("/collections/:collectionId/profile", getCollectionProfileHandler);
         fastify.get("/collections/:collectionId/types", getEntityTypesHandler);

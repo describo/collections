@@ -9,7 +9,7 @@ import { readJSON } from "fs-extra";
 import path from "path";
 const chance = require("chance").Chance();
 
-describe("Test the collection lib endpoints", () => {
+describe("Test the collection route endpoints", () => {
     let collection, collectionId, user;
 
     let users, userEmail, adminEmail, configuration, bucket;
