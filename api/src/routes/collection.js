@@ -7,7 +7,7 @@ import lodashPkg from "lodash";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 const { isArray, intersection, cloneDeep, isPlainObject, isString, chunk, groupBy } = lodashPkg;
 
-import { getEntityTypes, getEntities } from "../lib/collection.js";
+import { getEntityTypes, getEntities, loadEntity } from "../lib/collection.js";
 
 export function setupRoutes(fastify, options, done) {
     fastify.addHook("preHandler", demandAuthenticatedUser);
@@ -16,9 +16,7 @@ export function setupRoutes(fastify, options, done) {
 
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", requireCollectionAccess);
-        fastify.get("/collections/:code/profile", getCollectionProfileHandler);
         // fastify.get("/collections/:code/load", collectionLoadHandler);
-        fastify.get("/collections/:code/entities/:entityId", loadEntity);
         fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
         fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
         fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
@@ -26,14 +24,15 @@ export function setupRoutes(fastify, options, done) {
         fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
         fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
 
+        fastify.get("/collections/:collectionId/profile", getCollectionProfileHandler);
         fastify.get("/collections/:collectionId/types", getEntityTypesHandler);
         fastify.get("/collections/:collectionId/entities", getEntitiesHandler);
+        fastify.get("/collections/:collectionId/entities/:entityId", loadEntityHandler);
         done();
     });
     done();
 }
 
-// TODO: this code does not have tests yet
 async function requireCollectionAccess(req, res) {
     let collection = await models.collection.findOne({
         where: { id: req.params.collectionId },
@@ -45,7 +44,6 @@ async function requireCollectionAccess(req, res) {
     req.session.collection = collection;
 }
 
-// TODO this code does not have tests yet
 async function getCollectionsHandler(req) {
     let { limit, offset } = req.query;
     limit = limit ?? 10;
@@ -59,17 +57,13 @@ async function getCollectionsHandler(req) {
     return { collections: collections.map((c) => c.get()), total };
 }
 
-// TODO this code does not have tests yet
 async function getCollectionProfileHandler(req) {
     let collection = await models.collection.findOne({ where: { id: req.session.collection.id } });
     return { profile: collection.profile ?? {} };
 }
 
-// TODO this code does not have tests
 async function getEntitiesHandler(req) {
-    // todo
     const { type, queryString, limit, offset } = req.query;
-    console.log(type, queryString, limit, offset);
     return await getEntities({
         collectionId: req.session.collection.id,
         type,
@@ -80,150 +74,19 @@ async function getEntitiesHandler(req) {
     return {};
 }
 
-// TODO this code does not have tests yet
 async function getEntityTypesHandler(req) {
     return await getEntityTypes({ collectionId: req.session.collection.id });
 }
 
-async function getEntity({ id, collectionId, withProperties = true }) {
-    const query = {
-        where: {
-            [Op.and]: [
-                {
-                    [Op.or]: [{ id }, { label: id }],
-                },
-                {
-                    collectionId,
-                },
-            ],
-        },
-        include: [
-            {
-                model: models.type,
-                as: "etype",
-            },
-        ],
-    };
-    if (withProperties) {
-        query.include.push({
-            required: false,
-            where: { entityId: id },
-            model: models.property,
-            include: [
-                {
-                    model: models.entity,
-                    as: "targetEntity",
-                    include: [{ model: models.type, as: "etype" }],
-                },
-            ],
-        });
-    }
-
-    let entity = await models.entity.findOne(query);
-    if (withProperties) {
-        let reverse = await models.property.findAll({
-            where: { targetEntityId: id },
-            include: [{ model: models.entity }],
-        });
-        entity.reverseConnections = reverse.map((r) => {
-            return {
-                property: r.property,
-                propertyId: r.id,
-                srcEntityId: r.entityId,
-                tgtEntityId: r.targetEntityId,
-                tgtEntity: r.entity.get(),
-            };
-        });
-    }
-    return entity;
-}
-
-// TODO this code does not have tests yet
-async function loadEntity(req) {
-    console.time(`entity load time: ${req.params.entityId}`);
-    let entity = await getEntity({
-        id: req.params.entityId,
+async function loadEntityHandler(req) {
+    const { entityId } = req.params;
+    const { stub } = req.query;
+    let entity = await loadEntity({
         collectionId: req.session.collection.id,
+        id: decodeURIComponent(entityId),
+        stub,
     });
-    const reverseConnections = cloneDeep(entity.reverseConnections);
-    let properties = {};
-    for (let p of entity.properties) properties[p.property] = [];
-    for (let p of entity.properties) {
-        if (p.value)
-            properties[p.property].push({
-                propertyId: p.id,
-                srcEntityId: p.entityId,
-                property: p.property,
-                value: p.value,
-            });
-        if (p.valueStringified)
-            properties[p.property].push({
-                propertyId: p.id,
-                srcEntityId: p.entityId,
-                property: p.property,
-                value: JSON.parse(p.value),
-            });
-        if (p.targetEntity) {
-            const tgtEntity = {
-                describoId: p.targetEntity.id,
-                "@id": p.targetEntity.eid,
-                "@type": p.targetEntity.etype.map((type) => type.name).join(", "),
-                name: p.targetEntity.name,
-                associations: [],
-            };
-            const typesToResolve = Object.keys(profile.resolve);
-            const type = tgtEntity["@type"]?.split(",").map((t) => t.trim());
-            const specificTypesToResolve = intersection(typesToResolve, type);
-
-            let associations = [];
-            for (let type of specificTypesToResolve) {
-                const propertiesToResolve = profile.resolve[type];
-                let e = await getEntity({
-                    id: tgtEntity.describoId,
-                    collectionId: req.session.collection.id,
-                });
-                let properties = e.properties;
-                for (let entityProperty of properties) {
-                    if (propertiesToResolve.includes(entityProperty.property)) {
-                        let entity = await getEntity({
-                            id: entityProperty.targetEntityId,
-                            collectionId: req.session.collection.id,
-                            withProperties: false,
-                        });
-                        associations.push({
-                            property: entityProperty.property,
-                            entity: {
-                                describoId: entity.id,
-                                "@id": entity.eid,
-                                "@type": entity.etype.map((type) => type.name).join(", "),
-                                name: entity.name,
-                            },
-                        });
-                    }
-                }
-            }
-            tgtEntity.associations = associations;
-            properties[p.property].push({
-                propertyId: p.id,
-                srcEntityId: p.entityId,
-                property: p.property,
-                tgtEntityId: p.targetEntityId,
-                tgtEntity,
-            });
-        }
-    }
-    let entityData = entity.get();
-    delete entityData.properties;
-    entityData = {
-        describoId: entity.id,
-        "@id": entity.eid,
-        "@type": entity.etype.map((type) => type.name),
-        name: entity.name,
-        properties,
-        reverseConnections: groupBy(reverseConnections, "property"),
-    };
-    console.timeEnd(`entity load time: ${req.params.entityId}`);
-    return { entity: entityData };
+    return { entity };
 }
 
 // TODO this code does not have tests yet

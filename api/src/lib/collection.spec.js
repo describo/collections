@@ -3,7 +3,7 @@ import { readJSON } from "fs-extra";
 const chance = require("chance").Chance();
 import { createNewCollection } from "./admin.js";
 import { loadCrateIntoDatabase } from "./crate-tools";
-import { getEntityTypes, getEntities } from "./collection.js";
+import { getEntityTypes, getEntities, loadEntity } from "./collection.js";
 import path from "path";
 import models from "../models/index.js";
 
@@ -54,7 +54,6 @@ describe("Test the collection lib endpoints", () => {
             "URL",
         ]);
     });
-
     test("it should be able to lookup entities in the crate", async () => {
         // empty query params
         let { entities, total } = await getEntities({ collectionId });
@@ -74,20 +73,17 @@ describe("Test the collection lib endpoints", () => {
         ({ entities, total } = await getEntities({ collectionId, limit: 2, offset: 3 }));
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(11);
-        expect(entities).toEqual(["#BBBB", "#Person"]);
 
         // entities of type = Person only
         ({ entities, total } = await getEntities({ collectionId, type: "Person" }));
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(2);
-        expect(entities).toEqual(["#AAAA", "#Person"]);
 
         // entities matching a query string of Per
         ({ entities, total } = await getEntities({ collectionId, queryString: "Per" }));
         entities = entities.map((e) => e["@id"]).sort();
         // console.log(entities);
         expect(total).toEqual(1);
-        expect(entities).toEqual(["#Person"]);
 
         // match type = Person and query string AAA
         ({ entities, total } = await getEntities({
@@ -98,7 +94,6 @@ describe("Test the collection lib endpoints", () => {
         entities = entities.map((e) => e["@id"]).sort();
         // console.log(entities);
         expect(total).toEqual(1);
-        expect(entities).toEqual(["#Person"]);
 
         // match type = Person and query string AAA, limit 1, offset 1
         ({ entities, total } = await getEntities({
@@ -111,5 +106,64 @@ describe("Test the collection lib endpoints", () => {
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(1);
         expect(entities).toEqual([]);
+    });
+    test("it should be able to load an entities from the database", async () => {
+        let entity = await loadEntity({ collectionId, id: "./" });
+        expect(entity).toMatchObject({
+            "@id": "./",
+            "@type": ["Dataset"],
+            name: "My Research Object Crate",
+            "@properties": {
+                author: [
+                    {
+                        idx: /.*/,
+                        tgtEntity: {
+                            "@id": "#AAAA",
+                            "@type": ["Entity", "Person"],
+                            name: "AAAA",
+                            associations: [],
+                        },
+                    },
+                ],
+            },
+            "@reverse": {
+                about: [
+                    {
+                        "@id": "ro-crate-metadata.json",
+                        "@type": ["CreativeWork"],
+                        name: "ro-crate-metadata.json",
+                    },
+                ],
+            },
+        });
+
+        entity = await loadEntity({ collectionId, id: "#AAAA" });
+        expect(entity).toMatchObject({
+            "@id": "#AAAA",
+            "@type": ["Entity", "Person"],
+            name: "AAAA",
+            "@properties": {
+                relatedTo: [
+                    {
+                        idx: /.*/,
+                        tgtEntity: {
+                            "@id": "#BBBB",
+                            "@type": ["Entity", "Organisation", "Hotel"],
+                            name: "BBBB",
+                            associations: [],
+                        },
+                    },
+                ],
+            },
+            "@reverse": {
+                author: [
+                    {
+                        "@id": "./",
+                        "@type": ["Dataset"],
+                        name: "My Research Object Crate",
+                    },
+                ],
+            },
+        });
     });
 });

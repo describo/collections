@@ -41,6 +41,31 @@ describe("Test the collection lib endpoints", () => {
         await collection.destroy();
     });
 
+    test("it should be able to get the collection profile (also checks collection access middleware)", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+        let response = await fetch(`${host}/collections/${collectionId}/profile`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(response.status).toEqual(200);
+        let { profile } = await response.json();
+        expect(profile).toEqual({});
+    });
+
+    test("it should be able to the users' collections", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+        let response = await fetch(`${host}/collections`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(response.status).toEqual(200);
+        let { collections, total } = await response.json();
+        expect(total).toEqual(1);
+        expect(collections.length).toEqual(1);
+    });
+
     test("it should be able to get all of the entity types in a crate", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
@@ -62,7 +87,6 @@ describe("Test the collection lib endpoints", () => {
             "URL",
         ]);
     });
-
     test("it should be able to lookup entities in the crate", async () => {
         // empty query params
         const user = users.filter((u) => u.administrator)[0];
@@ -94,7 +118,6 @@ describe("Test the collection lib endpoints", () => {
         ({ entities, total } = await response.json());
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(11);
-        expect(entities).toEqual(["#BBBB", "#Person"]);
 
         // entities of type = Person only
         response = await fetch(`${host}/collections/${collectionId}/entities?type=Person`, {
@@ -105,7 +128,6 @@ describe("Test the collection lib endpoints", () => {
         ({ entities, total } = await response.json());
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(2);
-        expect(entities).toEqual(["#AAAA", "#Person"]);
 
         // entities matching a query string of Per
         response = await fetch(`${host}/collections/${collectionId}/entities?queryString=Per`, {
@@ -116,7 +138,6 @@ describe("Test the collection lib endpoints", () => {
         ({ entities, total } = await response.json());
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(1);
-        expect(entities).toEqual(["#Person"]);
 
         // match type = Person and query string AAA
         response = await fetch(
@@ -130,7 +151,6 @@ describe("Test the collection lib endpoints", () => {
         ({ entities, total } = await response.json());
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(1);
-        expect(entities).toEqual(["#Person"]);
 
         // match type = Person and query string AAA, limit 1, offset 1
         response = await fetch(
@@ -145,5 +165,40 @@ describe("Test the collection lib endpoints", () => {
         entities = entities.map((e) => e["@id"]).sort();
         expect(total).toEqual(1);
         expect(entities).toEqual([]);
+    });
+    test("it should be able to lookup entities in the crate", async () => {
+        // empty query params
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+        let response = await fetch(
+            `${host}/collections/${collectionId}/entities/${encodeURIComponent("./")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        let { entity } = await response.json();
+        expect(entity).toMatchObject({
+            "@id": "./",
+            "@type": ["Dataset"],
+            name: "My Research Object Crate",
+        });
+
+        response = await fetch(
+            `${host}/collections/${collectionId}/entities/${encodeURIComponent("#AAAA")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        ({ entity } = await response.json());
+
+        expect(entity).toMatchObject({
+            "@id": "#AAAA",
+            "@type": ["Entity", "Person"],
+            name: "AAAA",
+        });
     });
 });

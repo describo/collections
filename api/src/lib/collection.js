@@ -7,38 +7,6 @@ import lodashPkg from "lodash";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 const { isArray, intersection, cloneDeep, isPlainObject, isString, chunk, groupBy } = lodashPkg;
 
-// TODO: this code does not have tests yet
-// async function requireCollectionAccess(req, res) {
-//     let collection = await models.collection.findOne({
-//         where: { id: req.params.collectionId },
-//         include: [{ model: models.user, where: { id: req.session.user.id }, attributes: [] }],
-//     });
-//     if (!collection) {
-//         return res.forbidden(`You don't have permission to access this endpoint`);
-//     }
-//     req.session.collection = collection;
-// }
-
-// TODO this code does not have tests yet
-// async function getCollectionsHandler(req) {
-//     let { limit, offset } = req.query;
-//     limit = limit ?? 10;
-//     offset = offset ?? 0;
-//     let { rows: collections, count: total } = await models.collection.findAndCountAll({
-//         attributes: ["id", "name", "code"],
-//         include: [{ model: models.user, where: { id: req.session.user.id }, attributes: [] }],
-//         limit,
-//         offset,
-//     });
-//     return { collections: collections.map((c) => c.get()), total };
-// }
-
-// TODO this code does not have tests yet
-// async function getCollectionProfileHandler(req) {
-//     let collection = await models.collection.findOne({ where: { id: req.session.collection.id } });
-//     return { profile: collection.profile ?? {} };
-// }
-
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
     let where = {
         collectionId,
@@ -93,58 +61,122 @@ export async function getEntityTypes({ collectionId }) {
     return { types };
 }
 
-// async function getEntity({ id, collectionId, withProperties = true }) {
-//     const query = {
-//         where: {
-//             [Op.and]: [
-//                 {
-//                     [Op.or]: [{ id }, { label: id }],
-//                 },
-//                 {
-//                     collectionId,
-//                 },
-//             ],
-//         },
-//         include: [
-//             {
-//                 model: models.type,
-//                 as: "etype",
-//             },
-//         ],
-//     };
-//     if (withProperties) {
-//         query.include.push({
-//             required: false,
-//             where: { entityId: id },
-//             model: models.property,
-//             include: [
-//                 {
-//                     model: models.entity,
-//                     as: "targetEntity",
-//                     include: [{ model: models.type, as: "etype" }],
-//                 },
-//             ],
-//         });
-//     }
+export async function loadEntity({ collectionId, id, stub = false }) {
+    const query = {
+        where: { eid: id, collectionId },
+        include: [
+            {
+                model: models.type,
+                as: "etype",
+            },
+        ],
+    };
+    if (!stub) {
+        query.include.push({
+            required: false,
+            model: models.property,
+            include: [
+                {
+                    model: models.entity,
+                    as: "targetEntity",
+                    include: [{ model: models.type, as: "etype" }],
+                },
+            ],
+        });
+    }
+    // console.log(query);
 
-//     let entity = await models.entity.findOne(query);
-//     if (withProperties) {
-//         let reverse = await models.property.findAll({
-//             where: { targetEntityId: id },
-//             include: [{ model: models.entity }],
-//         });
-//         entity.reverseConnections = reverse.map((r) => {
-//             return {
-//                 property: r.property,
-//                 propertyId: r.id,
-//                 srcEntityId: r.entityId,
-//                 tgtEntityId: r.targetEntityId,
-//                 tgtEntity: r.entity.get(),
-//             };
-//         });
-//     }
-//     return entity;
-// }
+    // get the entity data from the db
+    let entity = await models.entity.findOne(query);
+
+    // if we need just a stub entry then return it here
+    if (stub) {
+        return {
+            "@id": entity.eid,
+            "@type": entity.etype.map((t) => t.name),
+            name: entity.name,
+        };
+    }
+
+    // otherwise, fully reconstruct the entity along with the associations
+    try {
+        let reverse = await assembleEntityReverseConnections({ entity });
+        entity = assembleEntity({ entity });
+        entity["@reverse"] = reverse;
+        return entity;
+    } catch (error) {
+        console.log(error);
+        return {};
+    }
+}
+
+function assembleEntity({ entity }) {
+    let e = {
+        "@id": entity.eid,
+        "@type": entity.etype.map((t) => t.name),
+        name: entity.name,
+    };
+    let properties = entity.properties.map((p) => {
+        // console.log(p);
+        if (p?.value) {
+            return {
+                idx: p.id,
+                property: p.property,
+                value: p.value,
+            };
+        } else if (p.targetEntityId) {
+            return {
+                idx: p.id,
+                property: p.property,
+                tgtEntity: {
+                    "@id": p.targetEntity.eid,
+                    "@type": p.targetEntity.etype.map((t) => t.name),
+                    name: p.targetEntity.name,
+                    associations: [],
+                },
+            };
+        }
+    });
+    properties = groupBy(properties, "property");
+    for (let property of Object.keys(properties)) {
+        properties[property] = properties[property].map((p) => {
+            delete p.property;
+            return p;
+        });
+    }
+    e["@properties"] = properties;
+    // console.log(JSON.stringify(properties, null, 2));
+    // console.log(JSON.stringify(e, null, 2));
+    return e;
+}
+
+async function assembleEntityReverseConnections({ entity }) {
+    let reverse = await models.property.findAll({
+        where: { targetEntityId: entity.id },
+        include: [
+            {
+                model: models.entity,
+                include: [{ model: models.type, as: "etype" }],
+            },
+        ],
+    });
+    reverse = reverse.map((p) => {
+        return {
+            property: p.property,
+            "@id": p.entity.eid,
+            "@type": p.entity.etype.map((t) => t.name),
+            name: p.entity.name,
+        };
+    });
+    reverse = groupBy(reverse, "property");
+    for (let property of Object.keys(reverse)) {
+        reverse[property] = reverse[property].map((p) => {
+            delete p.property;
+            return p;
+        });
+    }
+    return reverse;
+}
 
 // TODO this code does not have tests yet
 // async function loadEntity(req) {
