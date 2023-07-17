@@ -5,7 +5,6 @@
                 data.siteName
             }}</router-link>
         </div>
-        <MyCollectionsComponent class="pl-4" />
         <div class="flex-grow"></div>
         <div v-if="user.administrator">
             <div class="border-b border-white pt-20"></div>
@@ -37,7 +36,6 @@
 
 <script setup>
 import WhoAmIComponent from "./WhoAmI.component.vue";
-import MyCollectionsComponent from "./MyCollections.component.vue";
 import { reactive, computed, inject } from "vue";
 import { tokenSessionKey, removeLocalStorage } from "./storage.js";
 import { useStore } from "vuex";

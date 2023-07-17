@@ -54,7 +54,22 @@ async function getCollectionsHandler(req) {
         limit,
         offset,
     });
-    return { collections: collections.map((c) => c.get()), total };
+
+    let data = [];
+    for (let collection of collections) {
+        let [userCount, entityCount, typeCount] = await Promise.all([
+            collection.countUsers(),
+            collection.countEntities(),
+            collection.countTypes(),
+        ]);
+        data.push({
+            ...collection.get(),
+            userCount,
+            entityCount,
+            typeCount,
+        });
+    }
+    return { collections: data, total };
 }
 
 async function getCollectionProfileHandler(req) {

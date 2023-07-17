@@ -30,7 +30,9 @@ export default function (sequelize, DataTypes) {
     );
     Collection.associate = function (models) {
         Collection.belongsToMany(models.user, { through: "user_collection" });
-        Collection.belongsToMany(models.entity, { through: "entity_collection" });
+        // Collection.belongsToMany(models.entity, { through: "entity_collection" });
+        Collection.hasMany(models.entity);
+        Collection.hasMany(models.type);
     };
 
     return Collection;
