@@ -5,20 +5,16 @@
             <el-form :model="data.form" label-width="200px">
                 <el-form-item label="Collection Name">
                     <el-input v-model="data.form.name" />
-                    <div class="text-sm">
-                        The name of the project to which this collection belongs.
-                    </div>
+                    <div class="text-sm">A descriptive name for this collection.</div>
                 </el-form-item>
                 <el-form-item label="Project Code">
                     <el-input v-model="data.form.code" minlength="4" maxlength="4" />
-                    <div class="text-sm">
-                        The 4 letter project code associated with this collection.
-                    </div>
+                    <div class="text-sm">A unique 4 letter code to identify this collection.</div>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="onSubmit" :disabled="disableSubmit"
-                        >Create</el-button
-                    >
+                    <el-button type="primary" @click="onSubmit" :disabled="disableSubmit">
+                        Create
+                    </el-button>
                     <el-button>Cancel</el-button>
                 </el-form-item>
             </el-form>
