@@ -10,6 +10,7 @@ import { setupRoutes as setupUserRoutes } from "./src/routes/user.js";
 import { setupRoutes as setupProfileRoutes } from "./src/routes/profile.js";
 
 import Fastify from "fastify";
+import fastifyTusS3Plugin from "@paradisec-platform/fastify-tus-s3-plugin";
 import fastifyCompress from "@fastify/compress";
 import cors from "@fastify/cors";
 import fastifySensible from "@fastify/sensible";
@@ -47,6 +48,23 @@ async function main() {
     fastify.register(fastifyIO);
     fastify.register(fastifySensible);
     fastify.register(fastifyCompress);
+    fastify.register((fastify, options, done) => {
+        fastify.addHook("preHandler", async (req, res) => {
+            // fake middleware checking the caller is authorised
+            if (req.headers.authorization !== "Bearer secret") res.badRequest();
+        });
+        fastify.register(fastifyTusS3Plugin, {
+            awsAccessKeyId: configuration.api.services.s3.awsAccessKeyId,
+            awsSecretAccessKey: configuration.api.services.s3.awsSecretAccessKey,
+            endpoint: configuration.api.services.s3.endpointUrl,
+            forcePathStyle: configuration.api.services.s3.forcePathStyle,
+            cachePath: "./.cache",
+            uploadRoutePath: "/files",
+            defaultUploadExpiration: { hours: 6 }, // https://date-fnsorg/v2.29.3/docs/add
+        });
+        done();
+    });
+
     fastify.decorateRequest("models", "");
     fastify.addHook("onRequest", async (req, res) => {
         configuration = await loadConfiguration();
@@ -74,22 +92,4 @@ async function main() {
             process.exit(1);
         }
     });
-}
-
-async function initialiseRabbit({ configuration }) {
-    await rabbit.configure({
-        connection: {
-            name: "default",
-            user: configuration.api.services.rabbit.user,
-            pass: configuration.api.services.rabbit.pass,
-            host: configuration.api.services.rabbit.host,
-            port: configuration.api.services.rabbit.port,
-            vhost: "%2f",
-            replyQueue: "customReplyQueue",
-        },
-        exchanges: configuration.api.services.rabbit.exchanges,
-        queues: configuration.api.services.rabbit.queues,
-        bindings: configuration.api.services.rabbit.bindings,
-    });
-    return rabbit;
 }

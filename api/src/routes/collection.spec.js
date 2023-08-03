@@ -1,6 +1,6 @@
 import "regenerator-runtime";
 import fetch from "node-fetch";
-import { TestSetup, headers, host } from "../common";
+import { TestSetup, headers, host, getS3Handle } from "../common";
 import { createSession } from "../lib/session";
 import { createNewCollection } from "../lib/admin.js";
 import { loadCrateIntoDatabase } from "../lib/crate-tools.js";
@@ -16,12 +16,13 @@ describe("Test the collection route endpoints", () => {
     const tester = new TestSetup();
 
     beforeAll(async () => {
-        ({ userEmail, adminEmail, configuration, bucket } = await tester.setupBeforeAll());
+        ({ userEmail, adminEmail, configuration } = await tester.setupBeforeAll());
         users = await tester.setupUsers({ emails: [userEmail], adminEmails: [adminEmail] });
 
         user = users.filter((u) => u.administrator);
+        const code = chance.word();
         collection = await createNewCollection({
-            ...{ name: chance.sentence(), code: chance.word() },
+            ...{ name: chance.sentence(), code, bucket: code },
             user,
         });
         collectionId = collection.id;
@@ -38,13 +39,15 @@ describe("Test the collection route endpoints", () => {
         await models.type.destroy({ where: { collectionId } });
         await models.property.destroy({ where: { collectionId } });
         await models.entity.destroy({ where: { collectionId } });
+        await models.collection_file.destroy({ where: { collectionId } });
+        await models.collection_folder.destroy({ where: { collectionId } });
         await collection.destroy();
     });
 
     test("it should be able to get the collection profile (also checks collection access middleware)", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
-        let response = await fetch(`${host}/collections/${collectionId}/profile`, {
+        let response = await fetch(`${host}/collections/${collection.code}/profile`, {
             method: "GET",
             headers: headers(session),
         });
@@ -52,7 +55,6 @@ describe("Test the collection route endpoints", () => {
         let { profile } = await response.json();
         expect(profile).toEqual({});
     });
-
     test("it should be able to the users' collections", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
@@ -65,11 +67,10 @@ describe("Test the collection route endpoints", () => {
         expect(total).toEqual(1);
         expect(collections.length).toEqual(1);
     });
-
     test("it should be able to get all of the entity types in a crate", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
-        let response = await fetch(`${host}/collections/${collectionId}/types`, {
+        let response = await fetch(`${host}/collections/${collection.code}/types`, {
             method: "GET",
             headers: headers(session),
         });
@@ -91,7 +92,7 @@ describe("Test the collection route endpoints", () => {
         // empty query params
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
-        let response = await fetch(`${host}/collections/${collectionId}/entities`, {
+        let response = await fetch(`${host}/collections/${collection.code}/entities`, {
             method: "GET",
             headers: headers(session),
         });
@@ -110,7 +111,7 @@ describe("Test the collection route endpoints", () => {
             "ro-crate-metadata.json",
         ]);
 
-        response = await fetch(`${host}/collections/${collectionId}/entities?limit=2&offset=3`, {
+        response = await fetch(`${host}/collections/${collection.code}/entities?limit=2&offset=3`, {
             method: "GET",
             headers: headers(session),
         });
@@ -120,7 +121,7 @@ describe("Test the collection route endpoints", () => {
         expect(total).toEqual(11);
 
         // entities of type = Person only
-        response = await fetch(`${host}/collections/${collectionId}/entities?type=Person`, {
+        response = await fetch(`${host}/collections/${collection.code}/entities?type=Person`, {
             method: "GET",
             headers: headers(session),
         });
@@ -130,7 +131,7 @@ describe("Test the collection route endpoints", () => {
         expect(total).toEqual(2);
 
         // entities matching a query string of Per
-        response = await fetch(`${host}/collections/${collectionId}/entities?queryString=Per`, {
+        response = await fetch(`${host}/collections/${collection.code}/entities?queryString=Per`, {
             method: "GET",
             headers: headers(session),
         });
@@ -141,7 +142,7 @@ describe("Test the collection route endpoints", () => {
 
         // match type = Person and query string AAA
         response = await fetch(
-            `${host}/collections/${collectionId}/entities?type=Person&queryString=Per`,
+            `${host}/collections/${collection.code}/entities?type=Person&queryString=Per`,
             {
                 method: "GET",
                 headers: headers(session),
@@ -154,7 +155,7 @@ describe("Test the collection route endpoints", () => {
 
         // match type = Person and query string AAA, limit 1, offset 1
         response = await fetch(
-            `${host}/collections/${collectionId}/entities?type=Person&queryString=Per&limit=1&offset=1`,
+            `${host}/collections/${collection.code}/entities?type=Person&queryString=Per&limit=1&offset=1`,
             {
                 method: "GET",
                 headers: headers(session),
@@ -171,7 +172,7 @@ describe("Test the collection route endpoints", () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
         let response = await fetch(
-            `${host}/collections/${collectionId}/entities/${encodeURIComponent("./")}`,
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("./")}`,
             {
                 method: "GET",
                 headers: headers(session),
@@ -186,7 +187,7 @@ describe("Test the collection route endpoints", () => {
         });
 
         response = await fetch(
-            `${host}/collections/${collectionId}/entities/${encodeURIComponent("#AAAA")}`,
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#AAAA")}`,
             {
                 method: "GET",
                 headers: headers(session),
@@ -200,5 +201,107 @@ describe("Test the collection route endpoints", () => {
             "@type": ["Entity", "Person"],
             name: "AAAA",
         });
+    });
+    test.only("it should be able to create and lookup folders in the collection", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+
+        // create a root folder
+        let response = await fetch(`${host}/collections/${collection.code}/folder`, {
+            method: "PUT",
+            headers: headers(session),
+            body: JSON.stringify({ path: "/" }),
+        });
+
+        // create a child folder /aa
+        response = await fetch(`${host}/collections/${collection.code}/folder`, {
+            method: "PUT",
+            headers: headers(session),
+            body: JSON.stringify({ path: "/aa" }),
+        });
+
+        // create a child folder /aa/bb
+        response = await fetch(`${host}/collections/${collection.code}/folder`, {
+            method: "PUT",
+            headers: headers(session),
+            body: JSON.stringify({ path: "/aa/bb" }),
+        });
+
+        // create some file entries
+        //  - these are the DB entries of files that have been uploaded
+        response = await fetch(`${host}/collections/${collection.code}/file`, {
+            method: "PUT",
+            headers: headers(session),
+            body: JSON.stringify({ path: "/file.json" }),
+        });
+        response = await fetch(`${host}/collections/${collection.code}/file`, {
+            method: "PUT",
+            headers: headers(session),
+            body: JSON.stringify({ path: "/aa/file.json" }),
+        });
+        response = await fetch(`${host}/collections/${collection.code}/file`, {
+            method: "PUT",
+            headers: headers(session),
+            body: JSON.stringify({ path: "/aa/bb/file.json" }),
+        });
+
+        // query the root folder
+        response = await fetch(`${host}/collections/${collection.code}/folder?path=/`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(await response.json()).toEqual({
+            path: "/",
+            children: [
+                { name: "aa", type: "folder" },
+                { name: "file.json", type: "file" },
+            ],
+        });
+
+        // query /aa
+        response = await fetch(`${host}/collections/${collection.code}/folder?path=/aa`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(await response.json()).toEqual({
+            path: "/aa",
+            children: [
+                { name: "bb", type: "folder" },
+                { name: "file.json", type: "file" },
+            ],
+        });
+
+        // query /aa/bb
+        response = await fetch(`${host}/collections/${collection.code}/folder?path=/aa/bb`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(await response.json()).toEqual({
+            path: "/aa/bb",
+            children: [{ name: "file.json", type: "file" }],
+        });
+
+        // delete folder /aa
+        response = await fetch(`${host}/collections/${collection.code}/folder?path=/aa`, {
+            method: "DELETE",
+            headers: headers(session),
+        });
+
+        // query the root folder
+        response = await fetch(`${host}/collections/${collection.code}/folder?path=/`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(await response.json()).toEqual({
+            path: "/",
+            children: [{ name: "file.json", type: "file" }],
+        });
+
+        // query /aa
+        response = await fetch(`${host}/collections/${collection.code}/folder?path=/aa`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(await response.status).toEqual(400);
     });
 });

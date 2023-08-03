@@ -35,8 +35,12 @@ export function setupRoutes(fastify, options, done) {
 }
 
 async function postCreateCollectionHandler(req) {
-    let { name, code } = req.body;
-    let collection = await createNewCollection({ name, code, user: req.session.user });
+    let { name, code, bucket } = req.body;
+    let collection = await createNewCollection({ name, code, bucket, user: req.session.user });
+    await models.collection_folder.create({
+        collectionId: collection.id,
+        name: "/",
+    });
     return { collection: collection.get() };
 }
 

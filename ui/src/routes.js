@@ -3,7 +3,6 @@ import LoginComponent from "./components/Login.component.vue";
 import CallbackOauthLogin from "./components/authentication/OauthCallback.component.vue";
 import DashboardComponent from "./components/dashboard/Shell.component.vue";
 import CollectionsComponent from "./components/collections/Shell.component.vue";
-import BrowseCollectionComponent from "./components/collections/BrowseCollection.component.vue";
 import RenderEntityComponent from "./components/collections/RenderEntity.component.vue";
 import AdminComponent from "./components/admin/Shell.component.vue";
 import AdminManageUsersComponent from "./components/admin/users/ManageUsers.component.vue";
@@ -25,21 +24,15 @@ const routes = [
             { name: "dashboard", path: "dashboard", component: DashboardComponent },
             {
                 name: "collections",
-                path: "collections/:collectionId",
+                path: "collections/:code",
                 component: CollectionsComponent,
                 props: true,
-                children: [
-                    {
-                        name: "collections.browse",
-                        path: "browse",
-                        component: BrowseCollectionComponent,
-                    },
-                    {
-                        name: "collections.entity",
-                        path: "entity",
-                        component: RenderEntityComponent,
-                    },
-                ],
+            },
+
+            {
+                name: "collections.entity",
+                path: "collections/:code/entity",
+                component: RenderEntityComponent,
             },
             {
                 name: "admin",

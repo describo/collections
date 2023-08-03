@@ -11,6 +11,7 @@ export function setupRoutes(fastify, options, done) {
             ui: configuration.ui,
             processing: configuration.api.processing,
             authentication: Object.keys(configuration.api.authentication),
+            repositoryPath: configuration.api.repositoryPath,
         };
     });
     fastify.get(

@@ -28,8 +28,8 @@ export class TestSetup {
         const adminEmail = chance.email();
         let configuration = await loadConfiguration();
 
-        let { s3, bucket } = await getS3Handle({ configuration });
-        return { userEmail, adminEmail, configuration, bucket };
+        // let { s3, bucket } = await getS3Handle({ configuration });
+        return { userEmail, adminEmail, configuration };
     }
 
     async setupUsers({ emails = [], adminEmails = [] }) {

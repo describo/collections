@@ -94,7 +94,7 @@ async function refresh() {
 
 async function getProfile() {
     let response = await $http.get({
-        route: `/collections/${$route.params.collectionId}/profile`,
+        route: `/collections/${$route.params.code}/profile`,
     });
     if (response.status !== 200) {
         // handle the error
@@ -108,7 +108,7 @@ async function getProfile() {
 async function loadEntity({ id }) {
     if (base64regex.test(id)) id = atob(id);
     let response = await $http.get({
-        route: `/collections/${$route.params.collectionId}/entities/${encodeURIComponent(id)}`,
+        route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}`,
     });
     if (response.status !== 200) {
         // handle the error

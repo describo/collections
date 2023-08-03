@@ -17,6 +17,9 @@ const mutations = {
     setMyCollections(state, collections) {
         state.myCollections = [...collections];
     },
+    setCurrentCollection(state, collection) {
+        state.currentCollection = { ...collection };
+    },
 };
 
 const actions = {
@@ -39,5 +42,6 @@ function resetState() {
         configuration: undefined,
         user: {},
         myCollections: [],
+        currentCollection: {},
     };
 }

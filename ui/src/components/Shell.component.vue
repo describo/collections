@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-row">
-        <div class="bg-violet-400 h-screen sidebar-width">
-            <sidebar-component class="w-full bg-stone-300 h-screen" />
+        <div class="h-screen sidebar-width bg-stone-300">
+            <sidebar-component class="h-full" />
         </div>
         <div class="h-screen w-full overflow-scroll">
             <router-view />
@@ -12,7 +12,7 @@
 <script setup>
 import { tokenSessionKey, getLocalStorage } from "./storage.js";
 import SidebarComponent from "./Sidebar.component.vue";
-import { onMounted, inject, computed } from "vue";
+import { onMounted, inject, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 const $http = inject("$http");
@@ -23,6 +23,13 @@ const $store = useStore();
 onMounted(() => {
     init();
 });
+
+watch(
+    () => $route.path,
+    () => {
+        if ($route.path === "/dashboard") $store.commit("setCurrentCollection", {});
+    }
+);
 
 async function init() {
     let response = await $http.get({ route: "/authenticated" });

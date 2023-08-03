@@ -1,9 +1,8 @@
 import "regenerator-runtime";
 import fetch from "node-fetch";
-import { createUser } from "../lib/user";
 import { loadConfiguration, generateToken } from "../common";
 const chance = require("chance").Chance();
-import { getStoreHandle, TestSetup, headers, host } from "../common";
+import { TestSetup, host } from "../common";
 
 describe("Test loading the configuration", () => {
     test("it should be able to load the default configuration for the environment", async () => {
@@ -20,15 +19,11 @@ describe("Test the /authenticated endpoint", () => {
     const tester = new TestSetup();
 
     beforeAll(async () => {
-        ({ userEmail, adminEmail, configuration, bucket } = await tester.setupBeforeAll());
+        ({ userEmail, adminEmail, configuration } = await tester.setupBeforeAll());
         users = await tester.setupUsers({ emails: [userEmail], adminEmails: [adminEmail] });
     });
     beforeEach(async () => {
         identifier = chance.word();
-        store = await getStoreHandle({
-            id: identifier,
-            type: "collection",
-        });
     });
     afterEach(async () => {
         try {

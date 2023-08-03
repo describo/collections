@@ -5,6 +5,12 @@
                 data.siteName
             }}</router-link>
         </div>
+        <div class="text-slate-800">
+            <router-link :to="activeCollectionLink" class="text-center text-slate-800">
+                <div>{{ collection.name }}</div>
+                <div>{{ collection.code }}</div>
+            </router-link>
+        </div>
         <div class="flex-grow"></div>
         <div v-if="user.administrator">
             <div class="border-b border-white pt-20"></div>
@@ -64,6 +70,8 @@ const data = reactive({
 });
 let user = computed(() => $store.state.user);
 let current = computed(() => $route.path);
+let collection = computed(() => $store.state.currentCollection);
+let activeCollectionLink = computed(() => `/collections/${$store.state.currentCollection.code}`);
 
 async function logout() {
     await $http.get({ route: "/logout" });

@@ -1,6 +1,7 @@
 export { loadConfiguration, loadProfile, filterPrivateInformation } from "./configuration.js";
 export { getLogger, logEvent, log } from "./logger.js";
-export { getS3Handle, getStoreHandle } from "./getS3Handle.js";
+// export { getS3Handle, getStoreHandle } from "./getS3Handle.js";
+export { getS3Handle } from "./getS3Handle.js";
 export { demandAuthenticatedUser, demandAdministrator } from "./middleware.js";
 export { generateToken, verifyToken } from "./jwt.js";
 export { host, headers, TestSetup, generateLogs } from "./test-utils.js";

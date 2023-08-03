@@ -1,11 +1,14 @@
-import { demandAuthenticatedUser } from "../common/index.js";
+import { demandAuthenticatedUser, getS3Handle, getLogger } from "../common/index.js";
 import fsExtraPkg from "fs-extra";
 const { pathExists, readJSON } = fsExtraPkg;
 import { Op } from "sequelize";
 import models from "../models/index.js";
 import lodashPkg from "lodash";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
-const { isArray, intersection, cloneDeep, isPlainObject, isString, chunk, groupBy } = lodashPkg;
+const { isArray, uniqBy, groupBy, intersection, cloneDeep, isPlainObject, isString, chunk } =
+    lodashPkg;
+const log = getLogger();
+import path from "path";
 
 import { getEntityTypes, getEntities, loadEntity } from "../lib/collection.js";
 
@@ -16,7 +19,6 @@ export function setupRoutes(fastify, options, done) {
 
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", requireCollectionAccess);
-        // fastify.get("/collections/:code/load", collectionLoadHandler);
         // fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
         // fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
         // fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
@@ -24,10 +26,18 @@ export function setupRoutes(fastify, options, done) {
         // fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
         // fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
 
-        fastify.get("/collections/:collectionId/profile", getCollectionProfileHandler);
-        fastify.get("/collections/:collectionId/types", getEntityTypesHandler);
-        fastify.get("/collections/:collectionId/entities", getEntitiesHandler);
-        fastify.get("/collections/:collectionId/entities/:entityId", loadEntityHandler);
+        fastify.get("/collections/:code", getCollectionHandler);
+
+        fastify.get("/collections/:code/folder", getCollectionListFolderHandler);
+        fastify.put("/collections/:code/folder", putCollectionCreateFolderHandler);
+        fastify.put("/collections/:code/file", putCollectionCreateFileHandler);
+        fastify.delete("/collections/:code/folder", deleteCollectionDeleteFolderHandler);
+        fastify.get("/collections/:code/file/link", getCollectionFileLinkHandler);
+
+        fastify.get("/collections/:code/profile", getCollectionProfileHandler);
+        fastify.get("/collections/:code/types", getEntityTypesHandler);
+        fastify.get("/collections/:code/entities", getEntitiesHandler);
+        fastify.get("/collections/:code/entities/:entityId", loadEntityHandler);
         done();
     });
     done();
@@ -35,7 +45,7 @@ export function setupRoutes(fastify, options, done) {
 
 async function requireCollectionAccess(req, res) {
     let collection = await models.collection.findOne({
-        where: { id: req.params.collectionId },
+        where: { code: req.params.code },
         include: [{ model: models.user, where: { id: req.session.user.id }, attributes: [] }],
     });
     if (!collection) {
@@ -70,6 +80,119 @@ async function getCollectionsHandler(req) {
         });
     }
     return { collections: data, total };
+}
+
+async function getCollectionHandler(req) {
+    return { collection: req.session.collection.get() };
+}
+
+async function getCollectionListFolderHandler(req, res) {
+    let folder = await models.collection_folder.findOne({
+        where: { name: req.query.path },
+        include: [
+            { model: models.collection_folder, as: "childFolders" },
+            { model: models.collection_file, as: "file" },
+        ],
+    });
+    if (!folder) {
+        return res.badRequest();
+    }
+
+    return {
+        path: req.query.path,
+        children: [
+            ...folder?.childFolders?.map((f) => ({
+                name:
+                    req.query.path === "/"
+                        ? f.name.slice(1)
+                        : f.name.replace(req.query.path, "").slice(1),
+                type: "folder",
+            })),
+            ...folder?.file?.map((f) => ({ name: `${f.name.slice(1)}`, type: "file" })),
+        ],
+    };
+}
+
+async function putCollectionCreateFolderHandler(req) {
+    let root = path.dirname(req.body.path);
+    let child = path.basename(req.body.path);
+    if (child && !child.match(/^\//)) child = `/${child}`;
+
+    let folder = await models.collection_folder.findOrCreate({
+        where: { name: root },
+        defaults: {
+            collectionId: req.session.collection.id,
+            name: root,
+        },
+    });
+    folder = folder[0];
+
+    if (child) {
+        child = await models.collection_folder.findOrCreate({
+            where: { name: req.body.path },
+            defaults: {
+                collectionId: req.session.collection.id,
+                name: req.body.path,
+            },
+        });
+        child = child[0];
+        await folder.addChildFolder(child);
+    }
+
+    return {};
+}
+
+async function putCollectionCreateFileHandler(req) {
+    let root = path.dirname(req.body.path);
+    let child = path.basename(req.body.path);
+    if (child && !child.match(/^\//)) child = `/${child}`;
+
+    let folder = await models.collection_folder.findOne({
+        where: { name: root },
+    });
+    await models.collection_file.findOrCreate({
+        where: { name: child, collectionFolderId: folder.id },
+        defaults: {
+            name: child,
+            collectionId: req.session.collection.id,
+            collectionFolderId: folder.id,
+        },
+    });
+    return {};
+}
+
+async function deleteCollectionDeleteFolderHandler(req, res) {
+    const folder = await models.collection_folder.findOne({ where: { name: req.query.path } });
+    await destroyFolder(folder);
+
+    let { bucket } = await getS3Handle({ bucket: req.session.collection.bucket });
+    try {
+        await bucket.removeObjects({
+            prefix: `/${req.session.configuration.api.repositoryPath}${req.query.path}`,
+        });
+    } catch (error) {
+        res.internalServerError(`There was a problem deleting the files on the backend storage`);
+        log.error(error);
+        return {};
+    }
+
+    async function destroyFolder(folder) {
+        for (let file of await folder.getFile()) {
+            await file.destroy();
+        }
+        for (let child of await folder.getChildFolders()) {
+            await destroyFolder(child);
+        }
+        await folder.destroy();
+    }
+}
+
+async function getCollectionFileLinkHandler(req) {
+    let { bucket } = await getS3Handle({ bucket: req.session.collection.bucket });
+    let link = await bucket.getPresignedUrl({
+        target: `${req.session.configuration.api.repositoryPath}${req.query.path}`,
+    });
+    return { link };
 }
 
 async function getCollectionProfileHandler(req) {

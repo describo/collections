@@ -1,11 +1,9 @@
 require("regenerator-runtime");
-import { createUser } from "../lib/user";
 import { generateToken, verifyToken } from "./jwt";
 import { loadConfiguration } from "../common";
 const chance = require("chance").Chance();
 import MockDate from "mockdate";
-import { copy, move, readJSON, writeJSON, readdir } from "fs-extra";
-import { getStoreHandle, TestSetup, setupTestItem } from "../common";
+import { TestSetup } from "../common";
 
 describe("JWT tests", () => {
     let configuration, users, userEmail, adminEmail, bucket;
@@ -13,15 +11,11 @@ describe("JWT tests", () => {
     const tester = new TestSetup();
 
     beforeAll(async () => {
-        ({ userEmail, adminEmail, configuration, bucket } = await tester.setupBeforeAll());
+        ({ userEmail, adminEmail, configuration } = await tester.setupBeforeAll());
         users = await tester.setupUsers({ emails: [userEmail], adminEmails: [adminEmail] });
     });
     beforeEach(async () => {
         identifier = chance.word();
-        store = await getStoreHandle({
-            id: identifier,
-            type: "item",
-        });
     });
     afterEach(async () => {
         try {

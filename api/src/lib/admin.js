@@ -1,9 +1,9 @@
 import models from "../models/index.js";
 
-export async function createNewCollection({ name, code, user }) {
+export async function createNewCollection({ name, code, bucket, user }) {
     let collection = await models.collection.findOrCreate({
         where: { code },
-        defaults: { name, code },
+        defaults: { name, code, bucket },
     });
     collection = collection[0];
     await collection.addUser(user);

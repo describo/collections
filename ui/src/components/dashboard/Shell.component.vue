@@ -29,6 +29,10 @@
                 </div>
             </div>
         </div>
+        <div v-if="!data.collections.length" class="text-center p-4 bg-indigo-200 my-20 rounded">
+            You haven't been granted access to any collections yet. See your administrator to get
+            started.
+        </div>
     </div>
 </template>
 
@@ -40,7 +44,7 @@ const $router = useRouter();
 
 let data = reactive({
     total: 0,
-    limit: 9,
+    limit: 10,
     offset: 0,
     currentPage: 1,
     collections: {},
@@ -67,6 +71,6 @@ async function changePage(page) {
     await getMyCollections();
 }
 function navigateToCollection(collection) {
-    $router.push(`/collections/${collection.id}/browse`);
+    $router.push(`/collections/${collection.code}`);
 }
 </script>

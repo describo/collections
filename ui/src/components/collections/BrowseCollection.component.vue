@@ -3,11 +3,16 @@
         <el-card class="box-card">
             <template #header>
                 <div class="card-header">
-                    <span>Search for an entity by type</span>
+                    <span>Search for an entity</span>
                 </div>
             </template>
-            <div class="flex flex-row">
-                <el-select v-model="data.selectedEntityType" clearable filterable>
+            <div class="flex flex-row space-x-1">
+                <el-select
+                    v-model="data.selectedEntityType"
+                    clearable
+                    filterable
+                    placeholder="Select entity type"
+                >
                     <el-option
                         v-for="item in data.entityTypes"
                         :key="item.id"
@@ -21,7 +26,7 @@
                     v-model="data.queryString"
                     :fetch-suggestions="getEntities"
                     clearable
-                    placeholder="Search for an entity to work with"
+                    placeholder="Search by name and identifier"
                     :debounce="500"
                     @select="loadEntity"
                 >
@@ -56,7 +61,7 @@ getEntityTypes();
 
 async function getEntityTypes() {
     let response = await $http.get({
-        route: `/collections/${$route.params.collectionId}/types`,
+        route: `/collections/${$route.params.code}/types`,
     });
     if (response.status !== 200) return;
     response = await response.json();
@@ -67,7 +72,7 @@ async function getEntities(query, cb) {
     // if (query.length < 3) return cb([]);
     let offset = (data.page - 1) * data.limit;
     let response = await $http.get({
-        route: `/collections/${$route.params.collectionId}/entities`,
+        route: `/collections/${$route.params.code}/entities`,
         params: {
             type: data.selectedEntityType,
             queryString: query,
