@@ -202,7 +202,7 @@ describe("Test the collection route endpoints", () => {
             name: "AAAA",
         });
     });
-    test.only("it should be able to create and lookup folders in the collection", async () => {
+    test("it should be able to create and lookup folders in the collection", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
 
