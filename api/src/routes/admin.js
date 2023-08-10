@@ -70,8 +70,9 @@ async function postDetachUserFromCollectionHandler(req) {
 
 async function postLoadDataIntoCollectionHandler(req, res) {
     const crate = req.body.crate;
-    const collectionId = req.params.collectionId;
+    const code = req.params.code;
     const clientId = req.query.clientId;
-    await loadCrateIntoDatabase({ crate, collectionId, io: req.io, clientId });
+    let collection = await models.collection.findOne({ where: { code } });
+    await loadCrateIntoDatabase({ crate, collectionId: collection.id, io: req.io, clientId });
     return {};
 }

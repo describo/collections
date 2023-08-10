@@ -25,7 +25,7 @@
                             v-for="item in myCollections"
                             :key="item.code"
                             :label="item.name"
-                            :value="item.id"
+                            :value="item.code"
                         />
                     </el-select>
                 </div>
@@ -73,14 +73,14 @@ const data = reactive({
 
 let myCollections = computed(() => $store.state.myCollections);
 
-async function loadCollection(collectionId) {
+async function loadCollection(code) {
     data.collectionDataLoadingLogs = [];
-    if (!collectionId) return;
+    if (!code) return;
     const [file] = upload.value.files;
-    if (file && collectionId) {
+    if (file && code) {
         let fileData = await readFile(file);
         await $http.post({
-            route: `/admin/collections/${collectionId}/load-data`,
+            route: `/admin/collections/${code}/load-data`,
             params: { clientId: $socket.id },
             body: { crate: fileData },
         });
