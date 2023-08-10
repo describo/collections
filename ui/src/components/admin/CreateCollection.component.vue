@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ElForm, ElFormItem, ElInput, ElButton, ElCard } from "element-plus";
+import { ElForm, ElFormItem, ElInput, ElButton, ElCard, ElMessage } from "element-plus";
 import { reactive, ref, computed, inject } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
@@ -56,7 +56,10 @@ async function onSubmit() {
         const collectionCode = data.form.code;
         data.form = { name: undefined, code: undefined };
         $store.dispatch("getMyCollections");
-        $router.push(`/collections/${collectionCode}`);
+        ElMessage.success(`The collection was created`);
+        // $router.push(`/collections/${collectionCode}`);
+    } else {
+        ElMessage.error(`The was a problem creating that collection`);
     }
 }
 </script>
