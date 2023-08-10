@@ -1,42 +1,40 @@
 <template>
-    <div class="flex flex-col space-y-4 flex-grow">
-        <el-card class="box-card">
-            <template #header>
-                <div class="card-header">
-                    <span>Search for an entity</span>
-                </div>
-            </template>
-            <div class="flex flex-row space-x-1">
-                <el-select
-                    v-model="data.selectedEntityType"
-                    clearable
-                    filterable
-                    placeholder="Select entity type"
-                >
-                    <el-option
-                        v-for="item in data.entityTypes"
-                        :key="item.id"
-                        :label="item.name"
-                        :value="item.name"
-                    />
-                </el-select>
-
-                <el-autocomplete
-                    class="w-full flex-grow"
-                    v-model="data.queryString"
-                    :fetch-suggestions="getEntities"
-                    clearable
-                    placeholder="Search by name and identifier"
-                    :debounce="500"
-                    @select="loadEntity"
-                >
-                    <template #default="{ item }">
-                        {{ item["@id"] }} {{ item["@type"] }}: {{ item.name }}
-                    </template>
-                </el-autocomplete>
+    <el-card class="box-card flex-grow">
+        <template #header>
+            <div class="card-header">
+                <span>Search for an entity</span>
             </div>
-        </el-card>
-    </div>
+        </template>
+        <div class="flex flex-row space-x-1">
+            <el-select
+                v-model="data.selectedEntityType"
+                clearable
+                filterable
+                placeholder="Select entity type"
+            >
+                <el-option
+                    v-for="item in data.entityTypes"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.name"
+                />
+            </el-select>
+
+            <el-autocomplete
+                class="w-full flex-grow"
+                v-model="data.queryString"
+                :fetch-suggestions="getEntities"
+                clearable
+                placeholder="Search by name and identifier"
+                :debounce="500"
+                @select="loadEntity"
+            >
+                <template #default="{ item }">
+                    {{ item["@id"] }} {{ item["@type"] }}: {{ item.name }}
+                </template>
+            </el-autocomplete>
+        </div>
+    </el-card>
 </template>
 
 <script setup>
