@@ -4,7 +4,7 @@ const { pathExists, readJSON } = fsExtraPkg;
 import { Op } from "sequelize";
 import models from "../models/index.js";
 import lodashPkg from "lodash";
-import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
+import defaultProfile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 const { isArray, uniqBy, groupBy, intersection, cloneDeep, isPlainObject, isString, chunk } =
     lodashPkg;
 const log = getLogger();
@@ -35,6 +35,7 @@ export function setupRoutes(fastify, options, done) {
         fastify.get("/collections/:code/file/link", getCollectionFileLinkHandler);
 
         fastify.get("/collections/:code/profile", getCollectionProfileHandler);
+        fastify.post("/collections/:code/profile", postCollectionProfileHandler);
         fastify.get("/collections/:code/types", getEntityTypesHandler);
         fastify.get("/collections/:code/entities", getEntitiesHandler);
         fastify.get("/collections/:code/entities/:entityId", loadEntityHandler);
@@ -196,8 +197,33 @@ async function getCollectionFileLinkHandler(req) {
 }
 
 async function getCollectionProfileHandler(req) {
-    let collection = await models.collection.findOne({ where: { id: req.session.collection.id } });
-    return { profile: collection.profile ?? {} };
+    let collection = req.session.collection;
+
+    let types = await models.type.findAll({
+        where: { collectionId: collection.id },
+        attributes: ["name"],
+        raw: true,
+    });
+    let profile = collection.profile ?? cloneDeep(defaultProfile);
+    types = types.map((type) => type.name);
+    types = types.sort();
+    types.forEach((type) => {
+        if (!profile.classes[type]?.subClassOf?.length) {
+            profile.classes[type] = {
+                definition: "override",
+                subClassOf: [],
+                inputs: [],
+            };
+        }
+    });
+    return { profile };
+}
+
+// TODO: this code does not have tests yet
+async function postCollectionProfileHandler(req) {
+    req.session.collection.profile = req.body.profile;
+    await req.session.collection.save();
+    return {};
 }
 
 async function getEntitiesHandler(req) {

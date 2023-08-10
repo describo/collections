@@ -4,7 +4,7 @@
             <template #header>Step 1: Select a collection</template>
             <div class="flex flex-row">
                 <el-select
-                    v-model="data.selectedCollectionId"
+                    v-model="data.selectedCollectionCode"
                     clearable
                     @change="getCollectionProfile"
                     class="w-full"
@@ -13,13 +13,13 @@
                         v-for="item in data.collections"
                         :key="item.code"
                         :label="item.name"
-                        :value="item.id"
+                        :value="item.code"
                     />
                 </el-select>
             </div>
         </el-card>
 
-        <el-card v-if="data.selectedCollectionId">
+        <el-card v-if="data.selectedCollectionCode">
             <template #header>Step 2: Define the classes in this collection</template>
 
             <div class="flex flex-col space-y-4">
@@ -36,7 +36,7 @@
             </div>
         </el-card>
 
-        <el-card v-if="data.selectedCollectionId">
+        <el-card v-if="data.selectedCollectionCode">
             <template #header>
                 <div class="flex flex-col">
                     <div>Step 3: Associate classes to a parent class</div>
@@ -89,7 +89,7 @@
                 </div>
             </div>
         </el-card>
-        <el-card v-if="data.selectedCollectionId">
+        <el-card v-if="data.selectedCollectionCode">
             <template #header>
                 <div class="flex flex-row">
                     <div>The collection domain</div>
@@ -126,11 +126,10 @@
 import { ElButton, ElInput, ElSelect, ElOption } from "element-plus";
 import { inject, reactive, onMounted } from "vue";
 import difference from "lodash-es/difference";
-import groupBy from "lodash-es/groupBy";
 const $http = inject("$http");
 
 const data = reactive({
-    selectedCollectionId: undefined,
+    selectedCollectionCode: undefined,
     collections: [],
     input: undefined,
     entityTypes: {},
@@ -168,9 +167,9 @@ async function getDefaultProfile() {
 }
 
 async function getCollectionProfile() {
-    if (!data.selectedCollectionId) return;
+    if (!data.selectedCollectionCode) return;
     let response = await $http.get({
-        route: `/profile/${data.selectedCollectionId}`,
+        route: `/collections/${data.selectedCollectionCode}/profile`,
     });
     if (response.status !== 200) {
         // handle the error
@@ -185,11 +184,11 @@ async function getCollectionProfile() {
     );
 
     let { profile } = await response.json();
-    difference(Object.keys(profile.classes), Object.keys(data.defaultProfile.classes)).forEach(
+    difference(Object.keys(profile?.classes), Object.keys(data.defaultProfile.classes)).forEach(
         (entity) => {
             // data.entityTypes[entity] = { parent: profile.classes[entity].subClassOf[0] };
             try {
-                data.entitiesGroupedByType[profile.classes[entity].subClassOf[0]].push(entity);
+                data.entitiesGroupedByType[profile?.classes[entity].subClassOf[0]].push(entity);
             } catch (error) {
                 data.entitiesGroupedByType.ungrouped.push(entity);
             }
@@ -251,7 +250,7 @@ async function saveProfile() {
     }
 
     let response = await $http.post({
-        route: `/profile/${data.selectedCollectionId}`,
+        route: `/collections/${data.selectedCollectionCode}/profile`,
         body: { profile },
     });
     if (response.status !== 200) {

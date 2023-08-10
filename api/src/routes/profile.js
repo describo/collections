@@ -10,8 +10,8 @@ export function setupRoutes(fastify, options, done) {
 
     // fastify.get("/collections", getCollectionsHandler);
     fastify.get("/profile/default", getDefaultProfileHandler);
-    fastify.get("/profile/:collectionId", getProfileHandler);
-    fastify.post("/profile/:collectionId", postProfileHandler);
+    // fastify.get("/profile/:collectionId", getProfileHandler);
+    // fastify.post("/profile/:collectionId", postProfileHandler);
     done();
 }
 
@@ -21,36 +21,36 @@ async function getDefaultProfileHandler(req) {
 }
 
 // TODO: this code does not have tests yet
-async function getProfileHandler(req) {
-    const { collectionId } = req.params;
-    let collection = await models.collection.findOne({ where: { id: collectionId } });
-    // let types = await models.type.findAll({
-    //     where: { collectionId },
-    //     attributes: ["name"],
-    //     raw: true,
-    // });
-    // let profile = collection.profile ?? cloneDeep(defaultProfile);
-    // types = types.map((type) => type.name);
-    // types = types.sort();
-    // types.forEach((type) => {
-    //     if (!profile.classes[type]?.subClassOf?.length) {
-    //         profile.classes[type] = {
-    //             definition: "override",
-    //             subClassOf: [],
-    //             inputs: [],
-    //             // inputs: [...defaultProfile.classes["Entity"].inputs],
-    //         };
-    //     }
-    // });
-    // console.log(profile.classes);
-    return { profile: collection.profile ?? {} };
-}
+// async function getProfileHandler(req) {
+//     const { collectionId } = req.params;
+//     let collection = await models.collection.findOne({ where: { id: collectionId } });
+//     // let types = await models.type.findAll({
+//     //     where: { collectionId },
+//     //     attributes: ["name"],
+//     //     raw: true,
+//     // });
+//     // let profile = collection.profile ?? cloneDeep(defaultProfile);
+//     // types = types.map((type) => type.name);
+//     // types = types.sort();
+//     // types.forEach((type) => {
+//     //     if (!profile.classes[type]?.subClassOf?.length) {
+//     //         profile.classes[type] = {
+//     //             definition: "override",
+//     //             subClassOf: [],
+//     //             inputs: [],
+//     //             // inputs: [...defaultProfile.classes["Entity"].inputs],
+//     //         };
+//     //     }
+//     // });
+//     // console.log(profile.classes);
+//     return { profile: collection.profile ?? {} };
+// }
 
 // TODO: this code does not have tests yet
-async function postProfileHandler(req) {
-    const { collectionId } = req.params;
-    let collection = await models.collection.findOne({ where: { id: collectionId } });
-    collection.profile = req.body.profile;
-    await collection.save();
-    return {};
-}
+// async function postProfileHandler(req) {
+//     const { collectionId } = req.params;
+//     let collection = await models.collection.findOne({ where: { id: collectionId } });
+//     collection.profile = req.body.profile;
+//     await collection.save();
+//     return {};
+// }
