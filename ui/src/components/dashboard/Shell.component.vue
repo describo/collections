@@ -18,8 +18,8 @@
                     @click="navigateToCollection(collection)"
                     class="flex flex-col space-y-2 bg-blue-200 p-4 rounded cursor-pointer hover:bg-slate-800 hover:text-white"
                 >
-                    <div class="text-xl">{{ collection.name }}</div>
-                    <div class="flex flex-row space-x-4">
+                    <div class="text-3xl">{{ collection.name }}</div>
+                    <div class="flex flex-row space-x-10 text-xl">
                         <div><i class="fa-solid fa-user"></i>&nbsp;{{ collection.userCount }}</div>
                         <div>
                             <i class="fa-solid fa-file-lines"></i>&nbsp;{{ collection.entityCount }}
