@@ -21,16 +21,13 @@ export function setupRoutes(fastify, options, done) {
     fastify.get("/admin", async (req, res) => {});
     fastify.get("/admin/collections", getCollectionsHandler);
     fastify.post("/admin/collections/create", postCreateCollectionHandler);
-    fastify.get("/admin/collections/:collectionId/users", getCollectionUsersHandler);
+    fastify.get("/admin/collections/:code/users", getCollectionUsersHandler);
+    fastify.post("/admin/collections/:code/attach-user/:userId", postAttachUserToCollectionHandler);
     fastify.post(
-        "/admin/collections/:collectionId/attach-user/:userId",
-        postAttachUserToCollectionHandler
-    );
-    fastify.post(
-        "/admin/collections/:collectionId/detach-user/:userId",
+        "/admin/collections/:code/detach-user/:userId",
         postDetachUserFromCollectionHandler
     );
-    fastify.post("/admin/collections/:collectionId/load-data", postLoadDataIntoCollectionHandler);
+    fastify.post("/admin/collections/:code/load-data", postLoadDataIntoCollectionHandler);
     done();
 }
 
@@ -51,20 +48,23 @@ async function getCollectionsHandler(req) {
 }
 
 async function getCollectionUsersHandler(req) {
-    const { collectionId } = req.params;
-    let { users } = await getCollectionUsers({ collectionId });
+    const { code } = req.params;
+    let collection = await models.collection.findOne({ where: { code } });
+    let { users } = await getCollectionUsers({ collectionId: collection.id });
     return { users };
 }
 
 async function postAttachUserToCollectionHandler(req) {
-    const { collectionId, userId } = req.params;
-    await attachUserToCollection({ collectionId, userId });
+    const { code, userId } = req.params;
+    let collection = await models.collection.findOne({ where: { code } });
+    await attachUserToCollection({ collectionId: collection.id, userId });
     return {};
 }
 
 async function postDetachUserFromCollectionHandler(req) {
-    const { collectionId, userId } = req.params;
-    await detachUserFromCollection({ collectionId, userId });
+    const { code, userId } = req.params;
+    let collection = await models.collection.findOne({ where: { code } });
+    await detachUserFromCollection({ collectionId: collection.id, userId });
     return {};
 }
 
