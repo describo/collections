@@ -365,7 +365,7 @@ async function prepareDataInserts({ collectionId, crate }) {
                         id: uuidv4(),
                         property,
                         entityId: mapAtIdToEntityUUID[entity["@id"]],
-                        value: !isEmpty(instance) ?? "",
+                        value: instance,
                         collectionId,
                     });
                 }
