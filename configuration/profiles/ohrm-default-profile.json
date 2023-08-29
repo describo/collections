@@ -11,10 +11,12 @@
             "ohrm": "http://ohrm.ontology.somewhere"
         }
     ],
-    "resolve": {
-        "Relationship": ["source", "target"],
-        "Related": ["source", "target"]
-    },
+    "resolve": [
+        {
+            "types": ["Relationship", "Related"],
+            "properties": ["source", "target"]
+        }
+    ],
     "classes": {
         "Entity": {
             "definition": "override",
