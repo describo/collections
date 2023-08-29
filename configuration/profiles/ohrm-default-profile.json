@@ -756,13 +756,13 @@
                     "id": "ohrm:source",
                     "name": "source",
                     "help": "",
-                    "type": ["ANY_ENTITY"]
+                    "type": ["ANY"]
                 },
                 {
                     "id": "ohrm:target",
                     "name": "target",
                     "help": "",
-                    "type": ["ANY_ENTITY"]
+                    "type": ["ANY"]
                 },
                 {
                     "id": "ohrm:description",
@@ -844,7 +844,7 @@
                 }
             ]
         },
-        "EntityArchivalResourceRelationship": {
+        "ArchivalResourceRelationship": {
             "definition": "override",
             "subClassOf": ["Relationship"],
             "inputs": [
@@ -856,7 +856,7 @@
                 }
             ]
         },
-        "EntityDigitalObjectRelationship": {
+        "DigitalObjectRelationship": {
             "definition": "override",
             "subClassOf": ["Relationship"],
             "inputs": [
@@ -868,7 +868,7 @@
                 }
             ]
         },
-        "EntityFunctionRelationship": {
+        "FunctionRelationship": {
             "definition": "override",
             "subClassOf": ["Relationship"],
             "inputs": [
