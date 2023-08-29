@@ -1,6 +1,7 @@
 import { demandAuthenticatedUser } from "../common/index.js";
 import fsExtraPkg from "fs-extra";
 const { pathExists, readJSON } = fsExtraPkg;
+import sequelize from "sequelize";
 import { Op } from "sequelize";
 import models from "../models/index.js";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
@@ -88,6 +89,7 @@ export async function loadEntity({ collectionId, id, stub = false }) {
 
     // get the entity data from the db
     let entity = await models.entity.findOne(query);
+    entity.etype = orderBy(entity.etype, (e) => e.entity_types.updatedAt);
 
     // if we need just a stub entry then return it here
     if (stub) {
@@ -139,7 +141,7 @@ function assembleEntity({ entity }) {
     properties = groupBy(properties, "property");
     for (let property of Object.keys(properties)) {
         properties[property] = properties[property].map((p) => {
-            delete p.property;
+            // delete p.property;
             return p;
         });
     }

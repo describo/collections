@@ -1,16 +1,12 @@
 import { demandAuthenticatedUser, getS3Handle, getLogger } from "../common/index.js";
-import fsExtraPkg from "fs-extra";
-const { pathExists, readJSON } = fsExtraPkg;
-import { Op } from "sequelize";
 import models from "../models/index.js";
 import lodashPkg from "lodash";
 import defaultProfile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
-const { isArray, uniqBy, groupBy, intersection, cloneDeep, isPlainObject, isString, chunk } =
-    lodashPkg;
-const log = getLogger();
+const { isArray, cloneDeep } = lodashPkg;
 import path from "path";
-
+import { validateId } from "../lib/crate-tools.js";
 import { getEntityTypes, getEntities, loadEntity } from "../lib/collection.js";
+const log = getLogger();
 
 export function setupRoutes(fastify, options, done) {
     fastify.addHook("preHandler", demandAuthenticatedUser);
@@ -19,12 +15,6 @@ export function setupRoutes(fastify, options, done) {
 
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", requireCollectionAccess);
-        // fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
-        // fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
-        // fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
-        // fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
-        // fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
-        // fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
 
         fastify.get("/collections/:code", getCollectionHandler);
 
@@ -39,6 +29,17 @@ export function setupRoutes(fastify, options, done) {
         fastify.get("/collections/:code/types", getEntityTypesHandler);
         fastify.get("/collections/:code/entities", getEntitiesHandler);
         fastify.get("/collections/:code/entities/:entityId", loadEntityHandler);
+
+        fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
+        fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
+        fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
+        fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
+        fastify.put("/collections/:code/entities/:entityId/link", linkEntityHandler);
+        fastify.put("/collections/:code/entities/:entityId/unlink", unlinkEntityHandler);
+
+        fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
+        fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
+
         done();
     });
     done();
@@ -255,31 +256,78 @@ async function loadEntityHandler(req) {
 
 // TODO this code does not have tests yet
 async function createEntityHandler(req) {
-    let { entity, property } = req.body;
+    const collectionId = req.session.collection.id;
+
+    const sourceEntityId = decodeURIComponent(req.params.entityId);
+    let sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
 
     // create the new entity
-    entity = await this.models.entity.findOrCreate({
+    let entity = await this.models.entity.findOrCreate({
         where: {
-            collectionId: req.session.collection.id,
-            eid: entity["@id"],
+            collectionId,
+            eid: req.body.entity["@id"],
         },
         defaults: {
-            entityId: req.params.entityId,
-            collectionId: req.session.collection.id,
-            eid: entity["@id"],
-            etype: concat(entity["@type"]),
-            name: entity.name,
+            collectionId,
+            eid: req.body.entity["@id"],
+            name: req.body.entity.name,
         },
     });
     entity = entity[0];
 
+    // and associate the types to it
+    for (let type of req.body.entity["@type"]) {
+        type = await this.models.type.findOrCreate({
+            where: { collectionId, name: type },
+            defaults: {
+                collectionId,
+                name: type,
+            },
+        });
+        type = type[0];
+        await entity.addEtype(type);
+    }
+
     // associate it to the parent entity
     await this.models.property.create({
-        property: property,
-        collectionId: req.session.collection.id,
-        entityId: req.params.entityId,
+        property: req.body.property,
+        collectionId,
+        entityId: sourceEntity.id,
         targetEntityId: entity.id,
     });
+    return {};
+}
+
+// TODO this code does not have tests yet
+async function updateEntityHandler(req) {
+    const entityId = decodeURIComponent(req.params.entityId);
+    const collectionId = req.session.collection.id;
+    let entity = await this.models.entity.findOne({
+        where: { eid: entityId, collectionId },
+        include: [{ model: models.type, as: "etype" }],
+    });
+    if (req.body.name) {
+        entity.name = req.body.name;
+        await entity.save();
+    } else if (req.body["@id"]) {
+        let { isValid } = validateId({ id: req.body["@id"], type: entity["@type"] });
+        if (!isValid) req.body["@id"] = `#${encodeURIComponent(req.body["@id"])}`;
+        entity.eid = req.body["@id"];
+        await entity.save();
+    } else if (req.body["@type"]) {
+        // remove all existing type associations
+        for (let type of entity.etype) {
+            await entity.removeEtype(type);
+        }
+
+        // create the new state
+        for (let type of req.body["@type"]) {
+            type = await this.models.type.findOne({ where: { name: type } });
+            await entity.addEtype(type);
+        }
+    }
+
+    return { entity: { "@id": entity.eid } };
 }
 
 // TODO this code does not have tests yet
@@ -288,29 +336,56 @@ async function deleteEntityHandler(req) {
     await this.models.entity.destroy({
         where: {
             collectionId: req.session.collection.id,
-            id: req.params.entityId,
+            eid: decodeURIComponent(req.params.entityId),
         },
     });
+    return {};
 }
 
 // TODO this code does not have tests yet
-async function updateEntityHandler(req) {
-    let entity = await this.models.entity.findOne({
-        where: { id: req.params.entityId, collectionId: req.session.collection.id },
+async function linkEntityHandler(req) {
+    console.log(req.params, req.body);
+    return {};
+}
+
+// TODO this code does not have tests yet
+async function unlinkEntityHandler(req) {
+    const sourceEntityId = decodeURIComponent(req.params.entityId);
+    const sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
+
+    const targetEntityId = req.body.tgtEntityId;
+    const targetEntity = await this.models.entity.findOne({ where: { eid: targetEntityId } });
+
+    let property = await this.models.property.findOne({
+        where: {
+            property: req.body.property,
+            entityId: sourceEntity.id,
+            targetEntityId: targetEntity.id,
+        },
     });
-    if (req.body.name) entity.name = req.body.name;
-    if (req.body["@id"]) entity.eid = req.body["@id"];
-    await entity.save();
+    await property.destroy();
+
+    let isLinked = await this.models.property.findAll({
+        where: { targetEntityId: targetEntity.id },
+    });
+    if (!isLinked.length) {
+        // the entity is no longer linked to anything so get rid of it
+        await targetEntity.destroy();
+    }
+    return {};
 }
 
 // TODO this code does not have tests yet
 async function addPropertyHandler(req) {
+    const sourceEntityId = decodeURIComponent(req.params.entityId);
+    const sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
     await this.models.property.create({
         property: req.body.property,
         collectionId: req.session.collection.id,
-        entityId: req.params.entityId,
+        entityId: sourceEntity.id,
         value: req.body.value,
     });
+    return {};
 }
 
 // TODO this code does not have tests yet
@@ -320,6 +395,7 @@ async function updatePropertyHandler(req) {
     });
     property.value = req.body.value;
     await property.save();
+    return {};
 }
 
 // TODO this code does not have tests yet
@@ -336,6 +412,7 @@ async function deletePropertyHandler(req) {
         }
     }
     await property.destroy();
+    return {};
 }
 
 function asArray(value) {

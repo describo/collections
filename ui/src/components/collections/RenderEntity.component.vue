@@ -1,11 +1,25 @@
 <template>
     <div class="flex flex-col" v-if="data.entity?.['@id']">
-        <div class="bg-blue-100 sticky top-0 z-10 p-4 flex flex-col">
-            <div class="text-sm">
-                {{ data.entity["@type"].join(", ") }}
+        <div class="bg-stone-200 sticky top-0 z-10 p-4 flex flex-row">
+            <div class="flex flex-col">
+                <div class="text-sm">
+                    {{ data.entity["@type"].join(", ") }}
+                </div>
+                <div class="text-lg">
+                    {{ data.entity.name }}
+                </div>
             </div>
-            <div class="text-lg">
-                {{ data.entity.name }}
+            <div class="flex-grow"></div>
+            <div>
+                <el-popconfirm
+                    title="Are you sure you want to delete this entity?"
+                    width="350"
+                    @confirm="deleteEntity"
+                >
+                    <template #reference>
+                        <el-button type="danger">Delete this entity</el-button>
+                    </template>
+                </el-popconfirm>
             </div>
         </div>
         <div class="overflow-scroll" :class="panelHeight">
@@ -14,24 +28,32 @@
                 :entity="data.entity"
                 :profile="data.profile"
                 :crateManager="data.crateManager"
-                :mode="data.configuration.mode"
+                mode="online"
                 :configuration="data.configuration"
                 @load:entity="loadEntity"
-                @add:property="addProperty"
+                @create:property="createProperty"
                 @save:property="saveProperty"
                 @delete:property="deleteProperty"
+                @create:entity="ingestEntity"
                 @ingest:entity="ingestEntity"
                 @link:entity="linkEntity"
+                @unlink:entity="unlinkEntity"
                 @update:entity="updateEntity"
-                @delete:entity="deleteEntity"
             />
         </div>
     </div>
 </template>
 
 <script setup>
+import { ElMessage, ElButton, ElPopconfirm } from "element-plus";
 import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
-import { ProfileManager } from "/srv/describo/src/crate-builder/profile-manager.js";
+// import { ProfileManager } from "/srv/describo/src/crate-builder/profile-manager.js";
+import { $t, i18next } from "/srv/describo/src/crate-builder/i18n.js";
+i18next.changeLanguage("en");
+
+// import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
+import { ProfileManager } from "@describo/crate-builder-component/src/crate-builder/profile-manager.js";
+
 import { reactive, inject, computed, watch, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
@@ -44,6 +66,9 @@ const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}
 const data = reactive({
     entity: {},
     crateManager: {
+        getEntity({ id }) {
+            console.log(id);
+        },
         lookup: new (class {
             async entityTemplates({ type = undefined, queryString = undefined, limit = 5 }) {}
             async dataPacks({
@@ -52,7 +77,7 @@ const data = reactive({
                 datapack = undefined,
                 limit = 10,
             }) {
-                console.log(type, queryString, datapack, limit);
+                console.log("****", type, queryString, datapack, limit);
             }
         })(),
     },
@@ -117,77 +142,111 @@ async function loadEntity({ id }) {
     data.entity = response.entity;
     $router.push({ query: { id: btoa(id) } });
 }
+
 // IMPLEMENTED
-async function saveProperty({ propertyId, value }) {
-    // console.log("save:property", data);
+async function ingestEntity({ id, property, json }) {
+    // console.log("ingest:entity", id, property, { ...json });
+    let response = await $http.post({
+        route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}`,
+        body: { entity: json, property },
+    });
+    if (response.status === 200) {
+        refresh();
+    } else {
+        ElMessage.error(`There was a problem updating that property`);
+    }
+}
+
+function linkEntity(data) {
+    console.log("link:entity", data);
+}
+
+// IMPLEMENTED
+async function unlinkEntity({ id, property, tgtEntityId }) {
+    // console.log("unlink:entity", id, property, tgtEntityId);
+    let response = await $http.put({
+        route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}/unlink`,
+        body: { property, tgtEntityId },
+    });
+    if (response.status === 200) {
+        refresh();
+    } else {
+        ElMessage.error(`There was a problem updating that property`);
+    }
+}
+
+// IMPLEMENTED
+async function updateEntity({ id, property, value }) {
+    // console.log("update:entity", id, property, value);
+    let response = await $http.put({
+        route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}`,
+        body: { [property]: value },
+    });
+    if (response.status === 200) {
+        if (property === "@id") {
+            response = await response.json();
+            let entity = response.entity;
+            loadEntity({ id: entity["@id"] });
+        } else {
+            refresh();
+        }
+    } else {
+        ElMessage.error(`There was a problem updating that property`);
+    }
+}
+// IMPLEMENTED
+async function deleteEntity() {
+    // console.log("delete:entity", data.entity["@id"]);
+    let response = await $http.delete({
+        route: `/collections/${$route.params.code}/entities/${encodeURIComponent(
+            data.entity["@id"]
+        )}`,
+    });
+    if (response.status === 200) {
+        $router.push(`/collections/${$route.params.code}`);
+    } else {
+        ElMessage.error(`There was a problem deleting the entity`);
+    }
+}
+
+// IMPLEMENTED
+async function createProperty({ id, property, value }) {
+    // console.log("create:property", id, property, value);
+    let response = await $http.post({
+        route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}/properties`,
+        body: { property, value },
+    });
+    if (response.status === 200) {
+        refresh();
+    } else {
+        ElMessage.error(`There was a problem updating that property`);
+    }
+}
+
+// IMPLEMENTED
+async function saveProperty({ idx: propertyId, value }) {
+    // console.log("save:property", propertyId, value);
     let response = await $http.put({
         route: `/collections/${$route.params.code}/properties/${propertyId}`,
         body: { value },
     });
-    if (response.status !== 200) {
-        // handle the error
+    if (response.status === 200) {
+        refresh();
+    } else {
+        ElMessage.error(`There was a problem updating that property`);
     }
 }
+
 // IMPLEMENTED
-async function deleteProperty({ propertyId }) {
-    // console.log("delete:property", data);
+async function deleteProperty({ id: propertyId }) {
+    // console.log("delete:property", propertyId);
     let response = await $http.delete({
         route: `/collections/${$route.params.code}/properties/${propertyId}`,
     });
-    if (response.status !== 200) {
-        // handle the error
+    if (response.status === 200) {
+        refresh();
+    } else {
+        ElMessage.error(`There was a problem updating that property`);
     }
-    refresh();
-}
-// IMPLEMENTED
-async function addProperty({ entityId, property, value }) {
-    // console.log("add:property", data);
-    let response = await $http.post({
-        route: `/collections/${$route.params.code}/entities/${entityId}/properties`,
-        body: { property, value },
-    });
-    if (response.status !== 200) {
-        // handle the error
-    }
-    refresh();
-}
-// IMPLEMENTED
-async function ingestEntity({ entityId, json, property }) {
-    // console.log("ingest:entity", data);
-
-    let response = await $http.post({
-        route: `/collections/${$route.params.code}/entities/${entityId}`,
-        body: { entity: json, property },
-    });
-    if (response.status !== 200) {
-        // handle the error
-    }
-    refresh();
-}
-function linkEntity(data) {
-    console.log("link:entity", data);
-}
-// IMPLEMENTED
-async function updateEntity({ entityId, property, value }) {
-    // console.log("update:entity", data);
-    let response = await $http.put({
-        route: `/collections/${$route.params.code}/entities/${entityId}`,
-        body: { [property]: value },
-    });
-    if (response.status !== 200) {
-        // handle the error
-    }
-    refresh();
-}
-// IMPLEMENTED
-async function deleteEntity({ describoId }) {
-    // console.log("delete:entity", data);
-    let response = await $http.delete({
-        route: `/collections/${$route.params.code}/entities/${describoId}`,
-    });
-    if (response.status !== 200) {
-        // handle the error
-    }
-    data.entity = {};
 }
 </script>
