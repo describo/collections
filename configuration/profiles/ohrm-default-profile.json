@@ -72,7 +72,7 @@
                     "id": "ohrm:endDateISOString",
                     "name": "endDateISOString",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Date"]
                 },
                 {
                     "id": "ohrm:dateQualifier",
