@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col">
-        <div class="text-lg mb-10">File: {{ props.file }}</div>
+        <div class="text-lg mb-10">{{ props.file }}</div>
         <component v-bind:is="component" :link="data?.link" v-if="data.link"></component>
         <!-- <div class="text-center" v-if="!component">
             There is currently no viewer available to display this content.
