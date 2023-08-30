@@ -260,8 +260,7 @@ async function loadEntityHandler(req) {
 async function createEntityHandler(req) {
     const collectionId = req.session.collection.id;
 
-    console.log(req.body);
-    const entityId = `#${encodeURIComponent(req.body.name)}`;
+    const entityId = req.body["@id"] ? req.body["@id"] : `#${encodeURIComponent(req.body.name)}`;
     // create the new entity
     let entity = await this.models.entity.findOrCreate({
         where: {

@@ -77,7 +77,7 @@ onMounted(() => {
 
 async function getFileLink() {
     let response = await $http.get({
-        route: `/collections/${$store.state.currentCollection.code}/file/link`,
+        route: `/collections/${$route.params.code}/file/link`,
         params: { path: props.file },
     });
     if (response.status !== 200) {

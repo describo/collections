@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col" v-if="data.entity?.['@id']">
-        <div class="bg-stone-200 sticky top-0 z-10 p-4 flex flex-row">
+        <div class="bg-stone-200 sticky top-0 z-10 p-4 flex flex-row space-x-2">
             <div class="flex flex-col">
                 <div class="text-sm">
                     {{ data.entity["@type"].join(", ") }}
@@ -10,6 +10,11 @@
                 </div>
             </div>
             <div class="flex-grow"></div>
+            <div v-if="data.entity['@type'].includes('File')">
+                <el-button @click="data.showPreviewDrawer = !data.showPreviewDrawer"
+                    ><i class="fa-regular fa-eye"></i
+                ></el-button>
+            </div>
             <div>
                 <el-popconfirm
                     title="Are you sure you want to delete this entity?"
@@ -41,15 +46,26 @@
                 @update:entity="updateEntity"
             />
         </div>
+        <el-drawer
+            v-model="data.showPreviewDrawer"
+            destroy-on-close
+            title=""
+            direction="rtl"
+            size="50%"
+        >
+            <ContentViewerComponent :file="data.entity['@id']" class="" />
+        </el-drawer>
     </div>
 </template>
 
 <script setup>
-import { ElMessage, ElButton, ElPopconfirm } from "element-plus";
+import { ElMessage, ElButton, ElPopconfirm, ElDrawer } from "element-plus";
 import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
 // import { ProfileManager } from "/srv/describo/src/crate-builder/profile-manager.js";
 import { $t, i18next } from "/srv/describo/src/crate-builder/i18n.js";
 i18next.changeLanguage("en");
+
+import ContentViewerComponent from "./ContentViewer/Shell.component.vue";
 
 // import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
 import { ProfileManager } from "@describo/crate-builder-component/src/crate-builder/profile-manager.js";
@@ -64,6 +80,7 @@ const $http = inject("$http");
 const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 const data = reactive({
+    showPreviewDrawer: false,
     entity: {},
     crateManager: {
         getEntity({ id }) {
