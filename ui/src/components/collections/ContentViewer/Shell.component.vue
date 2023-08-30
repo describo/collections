@@ -20,7 +20,10 @@ import RenderAudioComponent from "./RenderAudio.component.vue";
 import RenderVideoComponent from "./RenderVideo.component.vue";
 import RenderDocumentComponent from "./RenderDocument.component.vue";
 // import RenderXmlComponent from "./RenderXML.component.vue";
+import { useRoute, useRouter } from "vue-router";
 const $http = inject("$http");
+const $route = useRoute();
+const $router = useRouter();
 const $store = useStore();
 
 const props = defineProps({
@@ -84,5 +87,18 @@ async function getFileLink() {
     let { link } = await response.json();
     data.link = link;
 }
-function describeItem() {}
+async function describeItem() {
+    let response = await $http.post({
+        route: `/collections/${$route.params.code}/entities`,
+        body: {
+            "@id": props.file,
+            "@type": ["File"],
+            name: props.file,
+        },
+    });
+    if (response.status === 200) {
+        let { entity } = await response.json();
+        $router.push({ name: "collections.entity", query: { id: btoa(entity["@id"]) } });
+    }
+}
 </script>

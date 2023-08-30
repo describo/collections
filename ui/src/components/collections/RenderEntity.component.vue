@@ -130,6 +130,7 @@ async function getProfile() {
     data.crateManager.profile = data.profile;
     data.crateManager.profileManager = profileManager;
 }
+
 async function loadEntity({ id }) {
     if (base64regex.test(id)) id = atob(id);
     let response = await $http.get({
@@ -194,6 +195,7 @@ async function updateEntity({ id, property, value }) {
         ElMessage.error(`There was a problem updating that property`);
     }
 }
+
 // IMPLEMENTED
 async function deleteEntity() {
     // console.log("delete:entity", data.entity["@id"]);

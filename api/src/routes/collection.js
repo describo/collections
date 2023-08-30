@@ -30,7 +30,8 @@ export function setupRoutes(fastify, options, done) {
         fastify.get("/collections/:code/entities", getEntitiesHandler);
         fastify.get("/collections/:code/entities/:entityId", loadEntityHandler);
 
-        fastify.post("/collections/:code/entities/:entityId", createEntityHandler);
+        fastify.post("/collections/:code/entities", createEntityHandler);
+        fastify.post("/collections/:code/entities/:entityId", createAndLinkEntityHandler);
         fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
         fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
         fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
@@ -257,6 +258,42 @@ async function loadEntityHandler(req) {
 
 // TODO this code does not have tests yet
 async function createEntityHandler(req) {
+    const collectionId = req.session.collection.id;
+
+    console.log(req.body);
+    const entityId = `#${encodeURIComponent(req.body.name)}`;
+    // create the new entity
+    let entity = await this.models.entity.findOrCreate({
+        where: {
+            collectionId,
+            eid: entityId,
+        },
+        defaults: {
+            collectionId,
+            eid: entityId,
+            name: req.body.name,
+        },
+    });
+    entity = entity[0];
+
+    // and associate the types to it
+    for (let type of req.body["@type"]) {
+        type = await this.models.type.findOrCreate({
+            where: { collectionId, name: type },
+            defaults: {
+                collectionId,
+                name: type,
+            },
+        });
+        type = type[0];
+        await entity.addEtype(type);
+    }
+
+    return { entity: { "@id": entity.eid } };
+}
+
+// TODO this code does not have tests yet
+async function createAndLinkEntityHandler(req) {
     const collectionId = req.session.collection.id;
 
     const sourceEntityId = decodeURIComponent(req.params.entityId);
