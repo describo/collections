@@ -248,6 +248,7 @@ async function loadEntityHandler(req) {
     const { stub } = req.query;
     let entity = await loadEntity({
         collectionId: req.session.collection.id,
+        profile: req.session.collection.profile,
         id: decodeURIComponent(entityId),
         stub,
     });

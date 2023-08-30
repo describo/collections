@@ -361,6 +361,9 @@ async function prepareDataInserts({ collectionId, crate }) {
                     }
                 } else {
                     // string data of some sort
+                    if (instance === null && typeof instance === "object") {
+                        continue;
+                    }
                     propertyInserts.push({
                         id: uuidv4(),
                         property,
