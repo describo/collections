@@ -31,7 +31,7 @@
             <!-- <pre>{{ data.entity }}</pre> -->
             <DescriboCrateBuilderComponent
                 :entity="data.entity"
-                :profile="data.profile"
+                :profile="data.crateManager.profile"
                 :crateManager="data.crateManager"
                 mode="online"
                 :configuration="data.configuration"
@@ -60,23 +60,22 @@
 
 <script setup>
 import { ElMessage, ElButton, ElPopconfirm, ElDrawer } from "element-plus";
+// import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
 import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
-// import { ProfileManager } from "/srv/describo/src/crate-builder/profile-manager.js";
 import { $t, i18next } from "/srv/describo/src/crate-builder/i18n.js";
 i18next.changeLanguage("en");
 
 import ContentViewerComponent from "./ContentViewer/Shell.component.vue";
 
-// import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
-import { ProfileManager } from "@describo/crate-builder-component/src/crate-builder/profile-manager.js";
-
 import { reactive, inject, computed, watch, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getCollectionInformation } from "./lib.js";
+import { useStore } from "vuex";
+import { getCollectionInformation, getProfile } from "./lib.js";
 import { debounce } from "lodash";
+const $http = inject("$http");
 const $route = useRoute();
 const $router = useRouter();
-const $http = inject("$http");
+const $store = useStore();
 const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 const data = reactive({
@@ -114,10 +113,14 @@ const data = reactive({
 });
 let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 150}px` }));
 
-onMounted(async () => {
-    await getCollectionInformation();
-    await getProfile();
+onBeforeMount(async () => {
+    await getCollectionInformation({ $http, $route, $store });
+    const { profile, profileManager } = await getProfile({ $http, $route });
+    data.crateManager.profile = profile;
+    data.crateManager.profileManager = profileManager;
     await loadEntity({ id: $route.query.id });
+});
+onMounted(async () => {
     data.watcher = watch(
         () => $route.query.id,
         (n, o) => {
@@ -133,20 +136,6 @@ onBeforeUnmount(() => {
 
 async function refresh() {
     await loadEntity({ id: $route.query.id });
-}
-
-async function getProfile() {
-    let response = await $http.get({
-        route: `/collections/${$route.params.code}/profile`,
-    });
-    if (response.status !== 200) {
-        // handle the error
-    }
-    response = await response.json();
-    data.profile = response.profile;
-    const profileManager = new ProfileManager({ profile: data.profile });
-    data.crateManager.profile = data.profile;
-    data.crateManager.profileManager = profileManager;
 }
 
 async function loadEntity({ id }) {

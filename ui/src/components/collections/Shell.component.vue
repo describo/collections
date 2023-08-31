@@ -16,13 +16,16 @@
 import BrowseCollectionComponent from "./BrowseCollection.component.vue";
 import FileManagerComponent from "./FileManager.component.vue";
 import CreateNewEntityComponent from "./CreateNewEntity.component.vue";
-import { onMounted, computed } from "vue";
-import { getCollectionInformation } from "./lib.js";
+import { inject, onBeforeMount, computed } from "vue";
+import { useRoute } from "vue-router";
 import { useStore } from "vuex";
+import { getCollectionInformation } from "./lib.js";
+const $route = useRoute();
 const $store = useStore();
+const $http = inject("$http");
 
-onMounted(async () => {
-    await getCollectionInformation();
+onBeforeMount(async () => {
+    await getCollectionInformation({ $http, $route, $store });
 });
 const collection = computed(() => $store.state.currentCollection);
 </script>

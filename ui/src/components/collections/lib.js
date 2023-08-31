@@ -1,12 +1,20 @@
-import { inject } from "vue";
-import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { ProfileManager } from "@describo/crate-builder-component/src/crate-builder/profile-manager.js";
 
-export async function getCollectionInformation() {
-    const $http = inject("$http");
-    const $route = useRoute();
-    const $store = useStore();
+export async function getCollectionInformation({ $http, $route, $store }) {
     let response = await $http.get({ route: `/collections/${$route.params.code}` });
     let { collection } = await response.json();
     $store.commit("setCurrentCollection", collection);
+}
+
+export async function getProfile({ $http, $route }) {
+    let response = await $http.get({
+        route: `/collections/${$route.params.code}/profile`,
+    });
+    if (response.status !== 200) {
+        // handle the error
+    }
+    response = await response.json();
+    const profile = response.profile;
+    const profileManager = new ProfileManager({ profile });
+    return { profile, profileManager };
 }
