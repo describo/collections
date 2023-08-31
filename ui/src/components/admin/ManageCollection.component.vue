@@ -1,15 +1,15 @@
 <template>
     <el-tabs v-model="data.activeTab">
-        <el-tab-pane label="Create" name="create">
+        <el-tab-pane label="Create a new collection" name="create">
             <CreateCollectionComponent v-if="data.activeTab === 'create'" />
         </el-tab-pane>
-        <el-tab-pane label="Load Data" name="load">
+        <el-tab-pane label="Load Data into a collection" name="load">
             <LoadCollectionDataComponent v-if="data.activeTab === 'load'" />
         </el-tab-pane>
-        <el-tab-pane label="Manage users" name="users">
+        <el-tab-pane label="Manage collection users" name="users">
             <ManageUsersComponent v-if="data.activeTab === 'users'" />
         </el-tab-pane>
-        <el-tab-pane label="Manage profile" name="profile">
+        <el-tab-pane label="Manage a collection profile" name="profile">
             <ManageProfileComponent v-if="data.activeTab === 'profile'" />
         </el-tab-pane>
     </el-tabs>
