@@ -6,6 +6,16 @@
             </div>
         </template>
         <el-form :model="data.form" label-width="120px">
+            <el-form-item label="@type">
+                <el-select v-model="data.form['@type']" clearable multiple filterable>
+                    <el-option
+                        v-for="entity in data.classes"
+                        :key="entity"
+                        :label="entity"
+                        :value="entity"
+                    />
+                </el-select>
+            </el-form-item>
             <el-form-item label="Entity name">
                 <el-input v-model="data.form.name" />
             </el-form-item>
@@ -20,17 +30,24 @@
 
 <script setup>
 import { ElInput, ElButton } from "element-plus";
-import { reactive, inject } from "vue";
+import { reactive, inject, onBeforeMount } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { getProfile } from "./lib.js";
 const $http = inject("$http");
 const $route = useRoute();
 const $router = useRouter();
 
 const data = reactive({
     form: {
+        "@type": [],
         name: undefined,
     },
     classes: [],
+});
+
+onBeforeMount(async () => {
+    let { profile, profileManager } = await getProfile({ $http, $route });
+    data.classes = profileManager.getClasses();
 });
 
 async function createEntity() {
@@ -38,7 +55,7 @@ async function createEntity() {
         route: `/collections/${$route.params.code}/entities`,
         body: {
             name: data.form.name,
-            "@type": ["Thing"],
+            "@type": data.form["@type"],
         },
     });
     if (response.status === 200) {
