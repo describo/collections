@@ -1,5 +1,6 @@
 <template>
     <div class="flex flex-col space-y-6">
+        <!--step 1  -->
         <el-card>
             <template #header>Step 1: Select a collection</template>
             <div class="flex flex-row">
@@ -19,6 +20,7 @@
             </div>
         </el-card>
 
+        <!--step 2  -->
         <el-card v-if="data.selectedCollectionCode">
             <template #header>Step 2: Define the classes in this collection</template>
 
@@ -29,13 +31,14 @@
                     "Person" rather than "people". If you're not sure, have a look at
                     <a href="https://schema.org/docs/full.html" target="_blank">schema.org</a>.
                 </div>
-                <div class="flex flex-row">
+                <div class="flex flex-row space-x-2">
                     <el-input v-model="data.input" placeholder="Add entities to the profile" />
                     <el-button @click="addClasses" type="primary">Add these classes</el-button>
                 </div>
             </div>
         </el-card>
 
+        <!-- step 3 -->
         <el-card v-if="data.selectedCollectionCode">
             <template #header>
                 <div class="flex flex-col">
@@ -89,14 +92,20 @@
                 </div>
             </div>
         </el-card>
+
         <el-card v-if="data.selectedCollectionCode">
             <template #header>
                 <div class="flex flex-row">
                     <div>The collection domain</div>
                     <div class="flex-grow"></div>
                     <div>
-                        <el-button @click="saveProfile" type="primary">
-                            Save this profile to the collection
+                        <el-button
+                            @click="saveProfile"
+                            :type="data.button.type"
+                            :disabled="data.button.type === 'success'"
+                        >
+                            <i class="fa-solid fa-floppy-disk"></i>&nbsp;
+                            {{ data.button.text }}
                         </el-button>
                     </div>
                 </div>
@@ -129,6 +138,10 @@ import difference from "lodash-es/difference";
 const $http = inject("$http");
 
 const data = reactive({
+    button: {
+        type: "primary",
+        text: "Save",
+    },
     selectedCollectionCode: undefined,
     collections: [],
     input: undefined,
@@ -255,7 +268,28 @@ async function saveProfile() {
     });
     if (response.status !== 200) {
         // handle the error
+        data.button = {
+            type: "danger",
+            text: "Error saving the profile",
+        };
+        setTimeout(() => {
+            data.button = {
+                type: "primary",
+                text: "Save",
+            };
+        }, 2000);
+    } else {
+        data.profile = profile;
+        data.button = {
+            type: "success",
+            text: "Saved",
+        };
+        setTimeout(() => {
+            data.button = {
+                type: "primary",
+                text: "Save",
+            };
+        }, 2000);
     }
-    data.profile = profile;
 }
 </script>
