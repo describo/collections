@@ -359,8 +359,11 @@ async function updateEntityHandler(req) {
 
         // create the new state
         for (let type of req.body["@type"]) {
-            type = await this.models.type.findOne({ where: { name: type } });
-            await entity.addEtype(type);
+            let typeModel = await this.models.type.findOne({ where: { name: type } });
+            if (!typeModel) {
+                typeModel = await this.models.type.create({ name: type, collectionId });
+            }
+            await entity.addEtype(typeModel);
         }
     }
 
