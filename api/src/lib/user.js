@@ -89,10 +89,12 @@ export async function toggleUserCapability({ userId, capability }) {
     return user;
 }
 
-export async function createAllowedUserStubAccounts({ emails }) {
-    let users = emails.map((email) => {
+export async function createAllowedUserStubAccounts({ accounts }) {
+    let users = accounts.map((user) => {
         return {
-            email,
+            email: user.email,
+            givenName: user.givenName,
+            familyName: user.familyName,
             provider: "unset",
             locked: false,
             upload: false,

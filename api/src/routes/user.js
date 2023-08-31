@@ -84,7 +84,7 @@ async function getUsersRouteHandler(req) {
 
 async function postInviteUsersRouteHandler(req, res) {
     try {
-        await createAllowedUserStubAccounts({ emails: req.body.emails });
+        await createAllowedUserStubAccounts({ accounts: req.body.accounts });
         logEvent({
             level: "info",
             owner: req.session.user.email,
