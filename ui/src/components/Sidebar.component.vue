@@ -8,7 +8,7 @@
         <div class="text-slate-800">
             <router-link :to="activeCollectionLink" class="text-center text-slate-800">
                 <div>{{ collection.name }}</div>
-                <div>{{ collection.code }}</div>
+                <!-- <div>{{ collection.code }}</div> -->
             </router-link>
         </div>
         <div class="flex-grow"></div>
