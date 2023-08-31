@@ -89,7 +89,7 @@ async function postInviteUsersRouteHandler(req, res) {
             level: "info",
             owner: req.session.user.email,
             text: `Admin invited users to the workspace.`,
-            data: { emails: req.body.emails },
+            data: { emails: req.body.accounts.map((u) => u.email) },
         });
         return {};
     } catch (error) {
