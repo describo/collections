@@ -84,7 +84,7 @@ const data = reactive({
     crateManager: {
         lookup: new (class {
             async entityTemplates({ type = undefined, queryString = undefined, limit = 5 }) {}
-            async dataPacks({
+            async entities({
                 type = undefined,
                 queryString = undefined,
                 datapack = undefined,
@@ -100,6 +100,24 @@ const data = reactive({
                 });
                 response = await response.json();
                 return { total: response.total, documents: response.entities };
+            }
+            async dataPacks({
+                type = undefined,
+                queryString = undefined,
+                datapack = undefined,
+                limit = 10,
+            }) {
+                // let response = await $http.get({
+                //     route: `/collections/${$route.params.code}/entities`,
+                //     params: {
+                //         type,
+                //         queryString,
+                //         limit,
+                //     },
+                // });
+                // response = await response.json();
+                // return { total: response.total, documents: response.entities };
+                return { total: 0, documents: [] };
             }
         })(),
     },
