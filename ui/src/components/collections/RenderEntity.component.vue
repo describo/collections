@@ -72,7 +72,7 @@ import { ProfileManager } from "@describo/crate-builder-component/src/crate-buil
 
 import { reactive, inject, computed, watch, onBeforeMount, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { getCollectionInformation } from "./lib.js";
 import { debounce } from "lodash";
 const $route = useRoute();
 const $router = useRouter();
@@ -115,6 +115,7 @@ const data = reactive({
 let panelHeight = computed(() => ({ "max-height": `${window.innerHeight - 150}px` }));
 
 onMounted(async () => {
+    await getCollectionInformation();
     await getProfile();
     await loadEntity({ id: $route.query.id });
     data.watcher = watch(

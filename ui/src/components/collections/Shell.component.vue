@@ -16,21 +16,13 @@
 import BrowseCollectionComponent from "./BrowseCollection.component.vue";
 import FileManagerComponent from "./FileManager.component.vue";
 import CreateNewEntityComponent from "./CreateNewEntity.component.vue";
-import { inject, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted, computed } from "vue";
+import { getCollectionInformation } from "./lib.js";
 import { useStore } from "vuex";
-const $route = useRoute();
 const $store = useStore();
-const $http = inject("$http");
 
 onMounted(async () => {
     await getCollectionInformation();
 });
 const collection = computed(() => $store.state.currentCollection);
-
-async function getCollectionInformation() {
-    let response = await $http.get({ route: `/collections/${$route.params.code}` });
-    let { collection } = await response.json();
-    $store.commit("setCurrentCollection", collection);
-}
 </script>

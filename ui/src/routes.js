@@ -28,7 +28,6 @@ const routes = [
                 component: CollectionsComponent,
                 props: true,
             },
-
             {
                 name: "collections.entity",
                 path: "collections/:code/entity",
