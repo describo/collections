@@ -17,208 +17,281 @@
             "properties": ["source", "target"]
         }
     ],
+    "layouts": [
+        {
+            "appliesTo": ["Entity"],
+            "about": { "label": "About", "description": "", "order": 0 },
+            "spatiotemporal": { "label": "Time and Place", "description": "", "order": 1 },
+            "processing": { "label": "Processing Information", "description": "", "order": 2 },
+            "overflow": { "label": "Other", "description": "", "order": 3 }
+        }
+    ],
     "classes": {
         "Entity": {
             "definition": "override",
             "subClassOf": [],
             "inputs": [
                 {
-                    "id": "ohrm:organisationCode",
-                    "name": "organisationCode",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:subName",
-                    "name": "subName",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:legalNumber",
-                    "name": "legalNumber",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:startDate",
-                    "name": "startDate",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:startDateModifier",
-                    "name": "startDateModifier",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:startDateISOString",
-                    "name": "startDateISOString",
-                    "help": "",
-                    "type": ["Date"]
-                },
-                {
-                    "id": "ohrm:endDate",
-                    "name": "endDate",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:endDateModifier",
-                    "name": "endDateModifier",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:endDateISOString",
-                    "name": "endDateISOString",
-                    "help": "",
-                    "type": ["Date"]
-                },
-                {
-                    "id": "ohrm:dateQualifier",
-                    "name": "dateQualifier",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:legalStatus",
-                    "name": "legalStatus",
-                    "help": "",
-                    "type": ["Text"]
-                },
-                {
-                    "id": "ohrm:function",
-                    "name": "function",
-                    "help": "",
-                    "type": ["Function"]
-                },
-                {
                     "id": "ohrm:summaryNote",
                     "name": "summaryNote",
                     "help": "",
-                    "type": ["TextArea"]
+                    "type": ["TextArea"],
+                    "group": "about"
                 },
                 {
                     "id": "ohrm:fullNote",
                     "name": "fullNote",
                     "help": "",
-                    "type": ["TextArea"]
+                    "type": ["TextArea"],
+                    "group": "about"
                 },
+                {
+                    "id": "ohrm:organisationCode",
+                    "name": "organisationCode",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:subName",
+                    "name": "subName",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:legalNumber",
+                    "name": "legalNumber",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:legalStatus",
+                    "name": "legalStatus",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:function",
+                    "name": "function",
+                    "help": "",
+                    "type": ["Function"],
+                    "group": "about"
+                },
+
                 {
                     "id": "ohrm:gender",
                     "name": "gender",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Select"],
+                    "values": ["Male", "Female", "Non-Binary"],
+                    "group": "about"
                 },
                 {
                     "id": "ohrm:reference",
                     "name": "reference",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:startDate",
+                    "name": "startDate",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:startDateModifier",
+                    "name": "startDateModifier",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:startDateISOString",
+                    "name": "startDateISOString",
+                    "help": "",
+                    "type": ["Date"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:endDate",
+                    "name": "endDate",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:endDateModifier",
+                    "name": "endDateModifier",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:endDateISOString",
+                    "name": "endDateISOString",
+                    "help": "",
+                    "type": ["Date"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:dateQualifier",
+                    "name": "dateQualifier",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "spatiotemporal"
+                },
+                {
+                    "id": "ohrm:legalStatus",
+                    "name": "legalStatus",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:function",
+                    "name": "function",
+                    "help": "",
+                    "type": ["Function"],
+                    "group": "about"
+                },
+
+                {
+                    "id": "ohrm:gender",
+                    "name": "gender",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:reference",
+                    "name": "reference",
+                    "help": "",
+                    "type": ["Text"],
+                    "group": "about"
                 },
                 {
                     "id": "ohrm:processingNotes",
                     "name": "processingNotes",
                     "help": "",
-                    "type": ["TextArea"]
+                    "type": ["TextArea"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:recordAppendDate",
                     "name": "recordAppendDate",
                     "help": "",
-                    "type": ["Date"]
+                    "type": ["Date"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:recordLastModified",
                     "name": "recordLastModified",
                     "help": "",
-                    "type": ["Date"]
+                    "type": ["Date"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:logo",
                     "name": "logo",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Text"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:online",
                     "name": "online",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Text"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:gallery",
                     "name": "gallery",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Text"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:owner",
                     "name": "owner",
                     "help": "",
-                    "type": ["Person"]
+                    "type": ["Person"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:rating",
                     "name": "rating",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Text"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:status",
                     "name": "status",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Text"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:preparedBy",
                     "name": "preparedBy",
                     "help": "",
-                    "type": ["Organisation"]
+                    "type": ["Person", "Organisation"],
+                    "group": "processing"
                 },
                 {
                     "id": "ohrm:birthPlace",
                     "name": "birthPlace",
                     "help": "",
-                    "type": ["Place"]
+                    "type": ["Place"],
+                    "group": "spatiotemporal"
                 },
                 {
                     "id": "ohrm:birthState",
                     "name": "birthState",
                     "help": "",
-                    "type": ["State"]
+                    "type": ["State"],
+                    "group": "spatiotemporal"
                 },
                 {
                     "id": "ohrm:birthCountry",
                     "name": "birthCountry",
                     "help": "",
-                    "type": ["Country"]
+                    "type": ["Country"],
+                    "group": "spatiotemporal"
                 },
                 {
                     "id": "ohrm:deathPlace",
                     "name": "deathPlace",
                     "help": "",
-                    "type": ["Place"]
+                    "type": ["Place"],
+                    "group": "spatiotemporal"
                 },
                 {
                     "id": "ohrm:deathState",
                     "name": "deathState",
                     "help": "",
-                    "type": ["State"]
+                    "type": ["State"],
+                    "group": "spatiotemporal"
                 },
                 {
                     "id": "ohrm:deathCountry",
                     "name": "deathCountry",
                     "help": "",
-                    "type": ["Country"]
+                    "type": ["Country"],
+                    "group": "spatiotemporal"
                 },
                 {
                     "id": "ohrm:nationality",
                     "name": "nationality",
                     "help": "",
-                    "type": ["Nationality"]
+                    "type": ["Nationality"],
+                    "group": "spatiotemporal"
                 }
             ]
         },
