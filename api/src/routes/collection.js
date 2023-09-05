@@ -421,11 +421,11 @@ async function unlinkEntityHandler(req) {
 async function addPropertyHandler(req) {
     const sourceEntityId = decodeURIComponent(req.params.entityId);
     const sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
-    await this.models.property.create({
+    let property = await this.models.property.create({
         property: req.body.property,
+        value: req.body.value,
         collectionId: req.session.collection.id,
         entityId: sourceEntity.id,
-        value: req.body.value,
     });
     return {};
 }
