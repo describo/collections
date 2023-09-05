@@ -19,6 +19,18 @@
     ],
     "layouts": [
         {
+            "appliesTo": ["Dataset"],
+            "about": { "label": "About", "order": 0 },
+            "entities": { "label": "Entities", "order": 1 },
+            "dobjects": { "label": "Digital Objects", "order": 2 },
+            "functions": { "label": "Functions", "order": 3 },
+            "arcresources": { "label": "Archival resources", "order": 4 },
+            "pubresources": { "label": "Published resources", "order": 5 },
+            "relationships": { "label": "Relationships", "order": 6 },
+            "parts": { "label": "Parts", "order": 7 },
+            "overflow": { "label": "Other", "description": "", "order": 8 }
+        },
+        {
             "appliesTo": ["Entity"],
             "about": { "label": "About", "description": "", "order": 0 },
             "spatiotemporal": { "label": "Time and Place", "description": "", "order": 1 },
@@ -27,6 +39,153 @@
         }
     ],
     "classes": {
+        "Dataset": {
+            "definition": "override",
+            "subClassOf": [],
+            "inputs": [
+                {
+                    "id": "http://schema.org/description",
+                    "name": "description",
+                    "help": "",
+                    "multiple": true,
+                    "required": true,
+                    "type": ["TextArea"],
+                    "group": "about"
+                },
+                {
+                    "id": "http://schema.org/keywords",
+                    "name": "keywords",
+                    "help": "",
+                    "multiple": true,
+                    "required": true,
+                    "type": ["Text", "URL", "DefinedTerm"],
+                    "group": "about"
+                },
+                {
+                    "id": "http://schema.org/license",
+                    "name": "license",
+                    "help": "",
+                    "required": true,
+                    "type": ["CreativeWork", "Text"],
+                    "group": "about"
+                },
+                {
+                    "id": "http://schema.org/dateCreated",
+                    "name": "dateCreated",
+                    "help": "",
+                    "required": true,
+                    "type": ["Date"],
+                    "group": "about"
+                },
+                {
+                    "id": "http://schema.org/dateModified",
+                    "name": "dateModified",
+                    "help": "",
+                    "required": true,
+                    "type": ["Date"],
+                    "group": "about"
+                },
+                {
+                    "id": "http://schema.org/datePublished",
+                    "name": "datePublished",
+                    "help": "",
+                    "type": ["Date"],
+                    "group": "about"
+                },
+                {
+                    "id": "ohrm:entity",
+                    "name": "entities",
+                    "help": "",
+                    "type": ["ANY"],
+                    "group": "entities"
+                },
+                {
+                    "id": "ohrm:entityEvent",
+                    "name": "entityEvent",
+                    "help": "",
+                    "type": ["ANY"],
+                    "group": "entities"
+                },
+                {
+                    "id": "ohrm:entityRelationships",
+                    "name": "entityRelationships",
+                    "help": "",
+                    "type": ["Relationship"],
+                    "group": "entities"
+                },
+                {
+                    "id": "ohrm:entityFunctionRelationship",
+                    "name": "entityFunctionRelationships",
+                    "help": "",
+                    "type": ["Relationship"],
+                    "group": "entities"
+                },
+                {
+                    "id": "ohrm:digitalObject",
+                    "name": "digitalObjects",
+                    "help": "",
+                    "type": ["DigitalObject"],
+                    "group": "dobjects"
+                },
+                {
+                    "id": "ohrm:digitalObjectVersions",
+                    "name": "digitalObjectVersions",
+                    "help": "",
+                    "type": ["DigitalObject"],
+                    "group": "dobjects"
+                },
+                {
+                    "id": "ohrm:entityDobjectRelationships",
+                    "name": "entityDobjectRelationships",
+                    "help": "",
+                    "type": ["Relationship"],
+                    "group": "dobjects"
+                },
+                {
+                    "id": "ohrm:entityfunction",
+                    "name": "entityFunction",
+                    "help": "",
+                    "type": ["Function"],
+                    "group": "functions"
+                },
+                {
+                    "id": "ohrm:archivalResource",
+                    "name": "archivalResources",
+                    "help": "",
+                    "type": ["ArchivalResource"],
+                    "group": "arcresources"
+                },
+                {
+                    "id": "ohrm:entityArchivalRelationship",
+                    "name": "entityArchivalRelationships",
+                    "help": "",
+                    "type": ["Relationship"],
+                    "group": "arcresources"
+                },
+                {
+                    "id": "ohrm:publishedResource",
+                    "name": "publishedResources",
+                    "help": "",
+                    "type": ["PublishedResource"],
+                    "group": "pubresources"
+                },
+                {
+                    "id": "ohrm:relationship",
+                    "name": "relationship",
+                    "help": "",
+                    "type": ["Relationship"],
+                    "group": "relationships"
+                },
+
+                {
+                    "id": "http://schema.org/hasPart",
+                    "name": "hasPart",
+                    "help": "",
+                    "type": ["File"],
+                    "group": "parts"
+                }
+            ]
+        },
         "Entity": {
             "definition": "override",
             "subClassOf": [],
