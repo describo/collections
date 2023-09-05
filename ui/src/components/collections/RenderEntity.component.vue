@@ -27,7 +27,7 @@
                 </el-popconfirm>
             </div>
         </div>
-        <div class="overflow-scroll" :class="panelHeight">
+        <div class="overflow-scroll pt-4" :class="panelHeight">
             <!-- <pre>{{ data.entity }}</pre> -->
             <DescriboCrateBuilderComponent
                 :entity="data.entity"
@@ -130,6 +130,8 @@ const data = reactive({
         enableTemplateLookups: false,
         enableDataPackLookups: false,
         enableReverseLinkBrowser: false,
+        tabLocation: "left",
+        resetTabOnEntityChange: true,
         mode: "online",
     },
     debouncedLoadEntity: debounce(loadEntity, 300),
