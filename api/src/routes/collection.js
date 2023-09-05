@@ -2,7 +2,7 @@ import { demandAuthenticatedUser, getS3Handle, getLogger } from "../common/index
 import models from "../models/index.js";
 import lodashPkg from "lodash";
 import defaultProfile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
-const { isArray, cloneDeep } = lodashPkg;
+const { isArray, cloneDeep, uniq } = lodashPkg;
 import path from "path";
 import { validateId } from "../lib/crate-tools.js";
 import { getEntityTypes, getEntities, loadEntity } from "../lib/collection.js";
@@ -208,9 +208,11 @@ async function getCollectionProfileHandler(req) {
     });
     let profile = collection.profile ?? cloneDeep(defaultProfile);
     types = types.map((type) => type.name);
+    types = [...types, ...Object.keys(defaultProfile.classes)];
+    types = uniq(types);
     types = types.sort();
     types.forEach((type) => {
-        if (!profile.classes[type]?.subClassOf?.length) {
+        if (!profile.classes[type]) {
             profile.classes[type] = {
                 definition: "override",
                 subClassOf: [],
