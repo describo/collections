@@ -131,6 +131,7 @@ function assembleEntity({ entity }) {
                 idx: p.id,
                 property: p.property,
                 value: p.value,
+                createdAt: p.createdAt,
             });
         } else if (p.targetEntityId) {
             const tgtEntity = {
@@ -143,9 +144,11 @@ function assembleEntity({ entity }) {
                 idx: p.id,
                 property: p.property,
                 tgtEntity,
+                createdAt: p.createdAt,
             });
         }
     }
+    properties = orderBy(properties, "createdAt", "desc ");
     properties = groupBy(properties, "property");
     for (let property of Object.keys(properties)) {
         properties[property] = properties[property].map((p) => {
