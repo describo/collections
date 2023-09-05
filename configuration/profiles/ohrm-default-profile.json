@@ -194,6 +194,7 @@
                     "id": "ohrm:summaryNote",
                     "name": "summaryNote",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"],
                     "group": "about"
                 },
@@ -201,6 +202,7 @@
                     "id": "ohrm:fullNote",
                     "name": "fullNote",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"],
                     "group": "about"
                 },
@@ -636,7 +638,7 @@
                     "id": "ohrm:endDateISOString",
                     "name": "endDateISOString",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Date"]
                 },
                 {
                     "id": "ohrm:dateQualifier",
@@ -720,13 +722,13 @@
                     "id": "ohrm:endDateISOString",
                     "name": "endDateISOString",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Date"]
                 },
                 {
                     "id": "ohrm:linearMetres",
                     "name": "linearMetres",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Number"]
                 },
                 {
                     "id": "ohrm:numberOfItems",
@@ -744,7 +746,7 @@
                     "id": "ohrm:formatOfItems",
                     "name": "formatOfItems",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["TextArea"]
                 },
                 {
                     "id": "ohrm:accessConditions",
@@ -774,7 +776,7 @@
                     "id": "ohrm:resourceCreator",
                     "name": "resourceCreator",
                     "help": "",
-                    "type": ["Person"]
+                    "type": ["Person", "Organisation"]
                 },
                 {
                     "id": "ohrm:levelOfCollection",
@@ -786,6 +788,7 @@
                     "id": "ohrm:processingNote",
                     "name": "processingNote",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
@@ -894,18 +897,21 @@
                     "id": "ohrm:abstract",
                     "name": "abstract",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
                     "id": "ohrm:notes",
                     "name": "notes",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
                     "id": "ohrm:classification",
                     "name": "classification",
                     "help": "",
+                    "multiple": true,
                     "type": ["Text"]
                 },
                 {
@@ -942,6 +948,7 @@
                     "id": "ohrm:contains",
                     "name": "contains",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
@@ -972,6 +979,7 @@
                     "id": "ohrm:processingNotes",
                     "name": "processingNotes",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
@@ -1002,6 +1010,7 @@
                     "id": "ohrm:description",
                     "name": "description",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
@@ -1038,7 +1047,7 @@
                     "id": "ohrm:endDateISOString",
                     "name": "endDateISOString",
                     "help": "",
-                    "type": ["Text"]
+                    "type": ["Date"]
                 },
                 {
                     "id": "ohrm:dateQualifier",
@@ -1062,6 +1071,7 @@
                     "id": "ohrm:processingNotes",
                     "name": "processingNotes",
                     "help": "",
+                    "multiple": true,
                     "type": ["TextArea"]
                 },
                 {
