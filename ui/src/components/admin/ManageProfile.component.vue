@@ -134,7 +134,8 @@
 <script setup>
 import { ElButton, ElInput, ElSelect, ElOption } from "element-plus";
 import { inject, reactive, onMounted } from "vue";
-import difference from "lodash-es/difference";
+import difference from "lodash-es/difference.js";
+import cloneDeep from "lodash-es/cloneDeep.js";
 const $http = inject("$http");
 
 const data = reactive({
@@ -246,9 +247,7 @@ function configureEntityDefinition(entity) {
 }
 
 async function saveProfile() {
-    let profile = {
-        ...data.defaultProfile,
-    };
+    let profile = cloneDeep(data.defaultProfile);
     profile.metadata.name = `Profile for '${data.selectedCollectionId}'`;
     profile.metadata.description = `Profile for '${data.selectedCollectionId}'; based on the default OHRM profile.`;
     for (let type of Object.keys(data.entitiesGroupedByType)) {
@@ -259,6 +258,12 @@ async function saveProfile() {
                 subClassOf: [type],
                 inputs: data.defaultProfile.classes[type].inputs,
             };
+
+            // if there is a layout for the parent class, then add this entity to it
+            profile.layouts = profile.layouts.map((layout) => {
+                if (layout.appliesTo.includes(type)) layout.appliesTo.push(entity);
+                return layout;
+            });
         }
     }
 
