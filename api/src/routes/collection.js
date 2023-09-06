@@ -5,7 +5,13 @@ import defaultProfile from "../../../configuration/profiles/ohrm-default-profile
 const { isArray, cloneDeep, uniq } = lodashPkg;
 import path from "path";
 import { validateId } from "../lib/crate-tools.js";
-import { getEntityTypes, getEntities, loadEntity } from "../lib/collection.js";
+import {
+    getEntityTypes,
+    getEntities,
+    loadEntity,
+    createEntity,
+    linkEntities,
+} from "../lib/collection.js";
 const log = getLogger();
 
 export function setupRoutes(fastify, options, done) {
@@ -262,34 +268,12 @@ async function loadEntityHandler(req) {
 async function createEntityHandler(req) {
     const collectionId = req.session.collection.id;
 
-    const entityId = req.body["@id"] ? req.body["@id"] : `#${encodeURIComponent(req.body.name)}`;
-    // create the new entity
-    let entity = await this.models.entity.findOrCreate({
-        where: {
-            collectionId,
-            eid: entityId,
-        },
-        defaults: {
-            collectionId,
-            eid: entityId,
-            name: req.body.name,
-        },
-    });
-    entity = entity[0];
-
-    // and associate the types to it
-    for (let type of req.body["@type"]) {
-        type = await this.models.type.findOrCreate({
-            where: { collectionId, name: type },
-            defaults: {
-                collectionId,
-                name: type,
-            },
-        });
-        type = type[0];
-        await entity.addEtype(type);
-    }
-
+    let entity = {
+        "@id": req.body["@id"] ? req.body["@id"] : `#${encodeURIComponent(req.body.name)}`,
+        "@type": req.body["@type"] ?? ["Thing"],
+        name: req.body.name,
+    };
+    entity = await createEntity({ collectionId, entity });
     return { entity: { "@id": entity.eid } };
 }
 
@@ -297,42 +281,20 @@ async function createEntityHandler(req) {
 async function createAndLinkEntityHandler(req) {
     const collectionId = req.session.collection.id;
 
+    // find the source entity
     const sourceEntityId = decodeURIComponent(req.params.entityId);
     let sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
 
     // create the new entity
-    let entity = await this.models.entity.findOrCreate({
-        where: {
-            collectionId,
-            eid: req.body.entity["@id"],
-        },
-        defaults: {
-            collectionId,
-            eid: req.body.entity["@id"],
-            name: req.body.entity.name,
-        },
-    });
-    entity = entity[0];
+    let entity = { ...req.body.entity };
+    entity = await createEntity({ collectionId, entity });
 
-    // and associate the types to it
-    for (let type of req.body.entity["@type"]) {
-        type = await this.models.type.findOrCreate({
-            where: { collectionId, name: type },
-            defaults: {
-                collectionId,
-                name: type,
-            },
-        });
-        type = type[0];
-        await entity.addEtype(type);
-    }
-
-    // associate it to the parent entity
-    await this.models.property.create({
-        property: req.body.property,
+    // link them
+    await linkEntities({
         collectionId,
-        entityId: sourceEntity.id,
-        targetEntityId: entity.id,
+        property: req.body.property,
+        sourceEntity,
+        targetEntity: entity,
     });
     return {};
 }

@@ -6,7 +6,7 @@ import { Op } from "sequelize";
 import models from "../models/index.js";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 import lodashPkg from "lodash";
-const { orderBy, groupBy, intersection, flattenDeep } = lodashPkg;
+const { orderBy, groupBy, intersection, isArray } = lodashPkg;
 
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
     let where = {
@@ -265,4 +265,47 @@ async function resolveLinkedEntityAssociations({ collectionId, entity, profile }
             return instance;
         }
     }
+}
+
+export async function createEntity({ collectionId, entity }) {
+    console.log(JSON.stringify(entity, null, 2));
+    let entityModel = await models.entity.findOrCreate({
+        where: {
+            collectionId,
+            eid: entity["@id"],
+        },
+        defaults: {
+            collectionId,
+            eid: entity["@id"],
+            name: entity.name,
+        },
+    });
+    entityModel = entityModel[0];
+
+    let types = asArray(entity["@type"]);
+    for (let type of types) {
+        type = await models.type.findOrCreate({
+            where: { collectionId, name: type },
+            defaults: {
+                collectionId,
+                name: type,
+            },
+        });
+        type = type[0];
+        await entityModel.addEtype(type);
+    }
+    return entityModel;
+}
+
+export async function linkEntities({ collectionId, sourceEntity, property, targetEntity }) {
+    await models.property.create({
+        property: property,
+        collectionId,
+        entityId: sourceEntity.id,
+        targetEntityId: targetEntity.id,
+    });
+}
+
+function asArray(value) {
+    return !isArray(value) ? [value] : value;
 }
