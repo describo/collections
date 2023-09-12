@@ -5,6 +5,7 @@ import { createSession } from "../lib/session";
 import { createNewCollection } from "../lib/admin.js";
 import { loadCrateIntoDatabase } from "../lib/crate-tools.js";
 import models from "../models/index.js";
+import { isEmpty } from "lodash";
 import { readJSON } from "fs-extra";
 import path from "path";
 const chance = require("chance").Chance();
@@ -53,7 +54,26 @@ describe("Test the collection route endpoints", () => {
         });
         expect(response.status).toEqual(200);
         let { profile } = await response.json();
-        expect(profile).toEqual({});
+        expect(isEmpty(profile)).toBe(false);
+        expect(Object.keys(profile.classes).sort()).toEqual([
+            "ArchivalResource",
+            "ArchivalResourceRelationship",
+            "CreativeWork",
+            "Dataset",
+            "DigitalObject",
+            "DigitalObjectRelationship",
+            "DigitalObjectVersion",
+            "Entity",
+            "Function",
+            "FunctionRelationship",
+            "Hotel",
+            "Organisation",
+            "Person",
+            "PublishedResource",
+            "Relationship",
+            "Thing",
+            "URL",
+        ]);
     });
     test("it should be able to the users' collections", async () => {
         const user = users.filter((u) => u.administrator)[0];
@@ -303,5 +323,34 @@ describe("Test the collection route endpoints", () => {
             headers: headers(session),
         });
         expect(await response.status).toEqual(400);
+    });
+    test.skip("it should be able to store / get a profile for a collection", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+
+        // get the default profile
+        let response = await fetch(`${host}/profile/default`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(response.status).toEqual(200);
+        let { profile } = await response.json();
+
+        // set it as the collection profile
+        response = await fetch(`${host}/profile/${collection.code}`, {
+            method: "POST",
+            headers: headers(session),
+            body: JSON.stringify({ profile }),
+        });
+        expect(response.status).toEqual(200);
+
+        //  then retrieve it and confirm it's the same as what we put in
+        response = await fetch(`${host}/profile/${collection.code}`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.profile).toMatchObject(profile);
     });
 });

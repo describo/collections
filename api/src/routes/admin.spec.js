@@ -132,7 +132,7 @@ describe("Test the admin endpoints", () => {
         expect(response.status).toEqual(200);
         let { collection } = await response.json();
 
-        response = await fetch(`${host}/admin/collections/${collection.id}/users`, {
+        response = await fetch(`${host}/admin/collections/${collection.code}/users`, {
             method: "GET",
             headers: headers(session),
         });
@@ -160,7 +160,7 @@ describe("Test the admin endpoints", () => {
 
         // detach the admin user
         response = await fetch(
-            `${host}/admin/collections/${collection.id}/detach-user/${user.id}`,
+            `${host}/admin/collections/${collection.code}/detach-user/${user.id}`,
             {
                 method: "POST",
                 headers: headers(session),
@@ -169,7 +169,7 @@ describe("Test the admin endpoints", () => {
         );
         expect(response.status).toEqual(200);
 
-        response = await fetch(`${host}/admin/collections/${collection.id}/users`, {
+        response = await fetch(`${host}/admin/collections/${collection.code}/users`, {
             method: "GET",
             headers: headers(session),
         });
@@ -179,7 +179,7 @@ describe("Test the admin endpoints", () => {
 
         // attach the admin user
         response = await fetch(
-            `${host}/admin/collections/${collection.id}/attach-user/${user.id}`,
+            `${host}/admin/collections/${collection.code}/attach-user/${user.id}`,
             {
                 method: "POST",
                 headers: headers(session),
@@ -188,7 +188,7 @@ describe("Test the admin endpoints", () => {
         );
         expect(response.status).toEqual(200);
 
-        response = await fetch(`${host}/admin/collections/${collection.id}/users`, {
+        response = await fetch(`${host}/admin/collections/${collection.code}/users`, {
             method: "GET",
             headers: headers(session),
         });
@@ -219,7 +219,7 @@ describe("Test the admin endpoints", () => {
             path.join(__dirname, "../../../data/TEST/ro-crate-metadata.json")
         );
 
-        response = await fetch(`${host}/admin/collections/${collectionId}/load-data`, {
+        response = await fetch(`${host}/admin/collections/${collection.code}/load-data`, {
             method: "POST",
             headers: headers(session),
             body: JSON.stringify({ crate }),

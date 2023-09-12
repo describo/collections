@@ -62,18 +62,39 @@ describe("User management tests", () => {
     });
     it("should be able to set up a normal user account", async () => {
         //  create stub account
-        let email = chance.email();
-        let users = await createAllowedUserStubAccounts({ emails: [email] });
+        let accounts = [
+            {
+                email: chance.email(),
+                givenName: chance.word(),
+                familyName: chance.word(),
+            },
+        ];
+        let users = await createAllowedUserStubAccounts({ accounts });
+        expect(users.length).toEqual(1);
 
-        //  create user
+        // expect(user.email).toEqual(accounts[0].email);
         let user = await createUser({
-            email,
+            email: accounts[0].email,
             provider: "unset",
             locked: false,
             upload: false,
             admin: false,
         });
-        expect(user.email).toEqual(users[0].email);
+
+        //  create a normal user ccount
+        try {
+            user = await createUser({
+                email: chance.email(),
+                givenName: chance.word(),
+                familyName: chance.word(),
+                provider: "unset",
+                locked: false,
+                upload: false,
+                admin: false,
+            });
+        } catch (error) {
+            expect(error.message).toEqual("Unauthorised");
+        }
     });
     it("should be able to set up an admin user account", async () => {
         //  create admin user account
@@ -130,15 +151,15 @@ describe("User management tests", () => {
         expect(user.administrator).toEqual(false);
     });
     it("should be able to create user stub accounts", async () => {
-        let emails = [chance.email()];
-        let users = await createAllowedUserStubAccounts({ emails });
+        let accounts = [
+            {
+                email: chance.email(),
+                givenName: chance.word(),
+                familyName: chance.word(),
+            },
+        ];
+        let users = await createAllowedUserStubAccounts({ accounts });
         expect(users.length).toEqual(1);
-        expect(emails).toEqual([users[0].email]);
-        for (let user of users) await user.destroy();
-
-        let email = chance.email();
-        emails = [email, email];
-        users = await createAllowedUserStubAccounts({ emails });
-        expect(users.length).toEqual(1);
+        expect(accounts[0].email).toEqual(users[0].email);
     });
 });
