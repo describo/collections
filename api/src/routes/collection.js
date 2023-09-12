@@ -4,13 +4,17 @@ import lodashPkg from "lodash";
 import defaultProfile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 const { isArray, cloneDeep, uniq } = lodashPkg;
 import path from "path";
-import { validateId } from "../lib/crate-tools.js";
 import {
     getEntityTypes,
     getEntities,
     loadEntity,
     createEntity,
     linkEntities,
+    updateEntity,
+    deleteEntity,
+    createProperty,
+    updateProperty,
+    deleteProperty,
 } from "../lib/collection.js";
 const log = getLogger();
 
@@ -303,47 +307,22 @@ async function createAndLinkEntityHandler(req) {
 async function updateEntityHandler(req) {
     const entityId = decodeURIComponent(req.params.entityId);
     const collectionId = req.session.collection.id;
-    let entity = await this.models.entity.findOne({
-        where: { eid: entityId, collectionId },
-        include: [{ model: models.type, as: "etype" }],
+    return await updateEntity({
+        collectionId,
+        entityId,
+        id: req.body["@id"],
+        type: req.body["@type"],
+        name: req.body.name,
     });
-    if (req.body.name) {
-        entity.name = req.body.name;
-        await entity.save();
-    } else if (req.body["@id"]) {
-        let { isValid } = validateId({ id: req.body["@id"], type: entity["@type"] });
-        if (!isValid) req.body["@id"] = `#${encodeURIComponent(req.body["@id"])}`;
-        entity.eid = req.body["@id"];
-        await entity.save();
-    } else if (req.body["@type"]) {
-        // remove all existing type associations
-        for (let type of entity.etype) {
-            await entity.removeEtype(type);
-        }
-
-        // create the new state
-        for (let type of req.body["@type"]) {
-            let typeModel = await this.models.type.findOne({ where: { name: type } });
-            if (!typeModel) {
-                typeModel = await this.models.type.create({ name: type, collectionId });
-            }
-            await entity.addEtype(typeModel);
-        }
-    }
-
-    return { entity: { "@id": entity.eid } };
 }
 
 // TODO this code does not have tests yet
 async function deleteEntityHandler(req) {
     // delete the new entity
-    await this.models.entity.destroy({
-        where: {
-            collectionId: req.session.collection.id,
-            eid: decodeURIComponent(req.params.entityId),
-        },
+    await deleteEntity({
+        collectionId: req.session.collection.id,
+        entityId: decodeURIComponent(req.params.entityId),
     });
-    return {};
 }
 
 // TODO this code does not have tests yet
@@ -382,41 +361,29 @@ async function unlinkEntityHandler(req) {
 // TODO this code does not have tests yet
 async function addPropertyHandler(req) {
     const sourceEntityId = decodeURIComponent(req.params.entityId);
-    const sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
-    let property = await this.models.property.create({
+    return await createProperty({
+        collectionId: req.session.collection.id,
+        sourceEntityId,
         property: req.body.property,
         value: req.body.value,
-        collectionId: req.session.collection.id,
-        entityId: sourceEntity.id,
     });
-    return {};
 }
 
 // TODO this code does not have tests yet
 async function updatePropertyHandler(req) {
-    let property = await this.models.property.findOne({
-        where: { id: req.params.propertyId, collectionId: req.session.collection.id },
+    return await updateProperty({
+        collectionId: req.session.collection.id,
+        propertyId: req.params.propertyId,
+        value: req.body.value,
     });
-    property.value = req.body.value;
-    await property.save();
-    return {};
 }
 
 // TODO this code does not have tests yet
 async function deletePropertyHandler(req) {
-    let property = await this.models.property.findOne({
-        where: { id: req.params.propertyId, collectionId: req.session.collection.id },
+    return await deleteProperty({
+        collectionId: req.session.collectionId,
+        propertyId: req.params.propertyId,
     });
-    if (property?.targetEntityId) {
-        let count = await this.models.property.count({
-            where: { targetEntityId: property.targetEntityId },
-        });
-        if (count <= 1) {
-            await this.models.entity.destroy({ where: { id: property.targetEntityId } });
-        }
-    }
-    await property.destroy();
-    return {};
 }
 
 function asArray(value) {

@@ -7,6 +7,7 @@ import models from "../models/index.js";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 import lodashPkg from "lodash";
 const { orderBy, groupBy, intersection, isArray } = lodashPkg;
+import { validateId } from "../lib/crate-tools.js";
 
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
     let where = {
@@ -306,6 +307,95 @@ export async function linkEntities({ collectionId, sourceEntity, property, targe
     });
 }
 
+export async function deleteEntity({ collectionId, entityId }) {
+    // delete the new entity
+    await models.entity.destroy({
+        where: {
+            collectionId,
+            eid: entityId,
+        },
+    });
+    return {};
+}
+
+export async function updateEntity({
+    collectionId,
+    entityId,
+    name = undefined,
+    id = undefined,
+    type = undefined,
+}) {
+    let entity = await models.entity.findOne({
+        where: { eid: entityId, collectionId },
+        include: [{ model: models.type, as: "etype" }],
+    });
+    entity["@type"] = entity.etype.map((t) => t.name);
+
+    if (name) {
+        entity.name = name;
+        await entity.save();
+    } else if (id) {
+        let { isValid } = validateId({ id, type: entity["@type"] });
+        if (!isValid) id = `#${encodeURIComponent(id)}`;
+        entity.eid = id;
+        await entity.save();
+    } else if (type) {
+        // remove all existing type associations
+        for (let type of entity.etype) {
+            await entity.removeEtype(type);
+        }
+
+        // create the new state
+        for (let t of asArray(type)) {
+            let typeModel = await models.type.findOne({ where: { name: t } });
+            if (!typeModel) {
+                typeModel = await models.type.create({ name: t, collectionId });
+            }
+            await entity.addEtype(typeModel);
+        }
+    }
+
+    return { entity: { "@id": entity.eid } };
+}
+
+export async function createProperty({ collectionId, sourceEntityId, property, value }) {
+    const sourceEntity = await models.entity.findOne({ where: { eid: sourceEntityId } });
+    property = await models.property.create({
+        property,
+        value,
+        collectionId,
+        entityId: sourceEntity.id,
+    });
+    return {};
+}
+
+export async function updateProperty({ collectionId, propertyId, value }) {
+    let property = await models.property.findOne({
+        where: { id: propertyId, collectionId },
+    });
+    property.value = value;
+    await property.save();
+    return {};
+}
+
+export async function deleteProperty({ collectionId, propertyId }) {
+    let property = await models.property.findOne({
+        where: { id: propertyId, collectionId },
+    });
+    // if by deleting this property we end up with a dangling entity
+    //   do we automatically delete that entity or leave it lying around?
+    //   need to think about this some more
+    // if (property?.targetEntityId) {
+    //     let count = await this.models.property.count({
+    //         where: { targetEntityId: property.targetEntityId },
+    //     });
+    //     if (count <= 1) {
+    //         await this.models.entity.destroy({ where: { id: property.targetEntityId } });
+    //     }
+    // }
+    await property.destroy();
+    return {};
+}
 function asArray(value) {
     return !isArray(value) ? [value] : value;
 }
