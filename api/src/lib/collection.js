@@ -101,6 +101,7 @@ export async function loadEntity({
     // if we need just a stub entry then return it here
     if (stub) {
         return {
+            id: entity.id,
             "@id": entity.eid,
             "@type": entity.etype.map((t) => t.name),
             name: entity.name,
@@ -121,6 +122,7 @@ export async function loadEntity({
 
 function assembleEntity({ entity }) {
     let e = {
+        id: entity.id,
         "@id": entity.eid,
         "@type": assembleEntityType(entity.etype),
         name: entity.name,
@@ -268,8 +270,8 @@ async function resolveLinkedEntityAssociations({ collectionId, entity, profile }
     }
 }
 
+// TODO none of this is tested yet
 export async function createEntity({ collectionId, entity }) {
-    console.log(JSON.stringify(entity, null, 2));
     let entityModel = await models.entity.findOrCreate({
         where: {
             collectionId,
@@ -299,7 +301,10 @@ export async function createEntity({ collectionId, entity }) {
 }
 
 export async function linkEntities({ collectionId, sourceEntity, property, targetEntity }) {
-    await models.property.create({
+    if (!sourceEntity.id || !property || !targetEntity.id) {
+        throw new Error(`'linkEntities' missing required params`);
+    }
+    property = await models.property.create({
         property: property,
         collectionId,
         entityId: sourceEntity.id,
@@ -396,6 +401,7 @@ export async function deleteProperty({ collectionId, propertyId }) {
     await property.destroy();
     return {};
 }
+
 function asArray(value) {
     return !isArray(value) ? [value] : value;
 }
