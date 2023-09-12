@@ -5,9 +5,7 @@
                 <div
                     class="w-1/2 text-right pr-4 text-gray-600 text-4xl flex flex-col justify-center"
                 >
-                    <div>
-                        {{ data.siteName }}
-                    </div>
+                    <div>Describo Collections</div>
                 </div>
                 <div class="w-1/2 pl-4 flex flex-col space-y-4">
                     <div
@@ -37,7 +35,6 @@ const OauthLoginComponent = defineAsyncComponent(() =>
     import("./authentication/OauthLogin.component.vue")
 );
 const data = reactive({
-    siteName: $store.state.configuration.ui.siteName,
     loginProviders: [
         { name: "aaf", text: "Login with the AAF" },
         { name: "google", text: "Login with Google" },

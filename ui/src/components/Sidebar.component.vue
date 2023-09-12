@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col space-y-2 text-lg">
         <div class="text-center py-6">
-            <router-link to="/dashboard" class="text-xl text-gray-800">{{
-                data.siteName
-            }}</router-link>
+            <router-link to="/dashboard" class="text-xl text-gray-800">
+                Describo Collections
+            </router-link>
         </div>
         <div class="text-slate-800">
             <router-link :to="activeCollectionLink" class="text-center text-slate-800">
@@ -52,7 +52,6 @@ const $store = useStore();
 const $http = inject("$http");
 
 const data = reactive({
-    siteName: $store.state.configuration.ui.siteName,
     adminControls: [
         {
             name: "Manage Collections",
