@@ -1,5 +1,25 @@
-# #!/usr/bin/env bash
+#!/usr/bin/env bash
 
+if [ "$#" != "1" ] ; then
+    echo "Usage: $0 [minor | patch]"
+    exit -1
+fi
+
+if [[ $1 != 'minor'  && $1 != 'patch' ]] ; then
+    echo "Usage: $0 [minor | patch]"
+    exit -1
+fi
+    cd api
+    npm version --no-git-tag-version $1
+    cd ../ui
+    npm version --no-git-tag-version $1
+    cd ..
+    git tag
+    git commit -a -m "tag and bump version"
+
+
+# read -p '>> Build the containers and push to docker hub? [y|N] ' resp
+# if [ "$resp" == "y" ] ; then
 #     docker build --push --rm \
 #         -t ghcr.io/describo/describo-collections-api:latest \
 #         -t ghcr.io/describo/describo-collections-api:${VERSION} \
@@ -14,3 +34,4 @@
 #         -t ghcr.io/describo/describo-collections-ui:latest \
 #         -t ghcr.io/describo/describo-collections-ui:${VERSION} \
 #         -f Dockerfile.ui-build .
+# fi
