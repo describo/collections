@@ -10,11 +10,11 @@ if [[ $1 != 'minor'  && $1 != 'patch' ]] ; then
     exit -1
 fi
     cd api
-    npm version --no-git-tag-version $1
+    version=$(npm version --no-git-tag-version $1)
     cd ../ui
-    npm version --no-git-tag-version $1
+    npm version --no-git-tag-version $version
     cd ..
-    git tag
+    git tag $version
     git commit -a -m "tag and bump version"
 
 
