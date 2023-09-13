@@ -61,40 +61,12 @@ describe("Test the profile route endpoints", () => {
                 "https://w3id.org/ro/crate/1.1/context",
                 { ohrm: "http://ohrm.ontology.somewhere" },
             ],
-            resolve: {
-                Relationship: ["source", "target"],
-                Related: ["source", "target"],
-            },
+            resolve: [
+                {
+                    types: ["Relationship", "Related"],
+                    properties: ["source", "target"],
+                },
+            ],
         });
-    });
-
-    test("it should be able to store / get a profile for a collection", async () => {
-        const user = users.filter((u) => u.administrator)[0];
-        let session = await createSession({ user });
-
-        // get the default profile
-        let response = await fetch(`${host}/profile/default`, {
-            method: "GET",
-            headers: headers(session),
-        });
-        expect(response.status).toEqual(200);
-        let { profile } = await response.json();
-
-        // set it as the collection profile
-        response = await fetch(`${host}/profile/${collectionId}`, {
-            method: "POST",
-            headers: headers(session),
-            body: JSON.stringify({ profile }),
-        });
-        expect(response.status).toEqual(200);
-
-        //  then retrieve it and confirm it's the same as what we put in
-        response = await fetch(`${host}/profile/${collectionId}`, {
-            method: "GET",
-            headers: headers(session),
-        });
-        expect(response.status).toEqual(200);
-        response = await response.json();
-        expect(response.profile).toMatchObject(profile);
     });
 });

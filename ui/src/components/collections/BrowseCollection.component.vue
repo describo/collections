@@ -2,7 +2,7 @@
     <el-card class="box-card flex-grow">
         <template #header>
             <div class="card-header">
-                <span>Search for an entity</span>
+                <span>Edit an existing entity</span>
             </div>
         </template>
         <div class="flex flex-row space-x-1">

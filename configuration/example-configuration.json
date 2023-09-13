@@ -1,6 +1,6 @@
 {
     "ui": {
-        "siteName": "Describo Collections"
+        "tusEndpoint": "/api/files"
     },
     "api": {
         "administrators": ["{user@email.com}", "{other user@somewhere.else.com}"],

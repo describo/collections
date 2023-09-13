@@ -84,12 +84,12 @@ async function getUsersRouteHandler(req) {
 
 async function postInviteUsersRouteHandler(req, res) {
     try {
-        await createAllowedUserStubAccounts({ emails: req.body.emails });
+        await createAllowedUserStubAccounts({ accounts: req.body.accounts });
         logEvent({
             level: "info",
             owner: req.session.user.email,
             text: `Admin invited users to the workspace.`,
-            data: { emails: req.body.emails },
+            data: { emails: req.body.accounts.map((u) => u.email) },
         });
         return {};
     } catch (error) {

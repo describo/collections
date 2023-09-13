@@ -41,14 +41,16 @@ describe("User management route tests as admin", () => {
         expect(response.users.length).toEqual(2);
     });
     it("should be able to invite users", async () => {
-        let email = chance.email();
+        const accounts = [
+            { email: chance.email(), givenName: chance.word(), familyName: chance.word() },
+        ];
 
         let user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
         let response = await fetch(`${host}/admin/users`, {
             method: "POST",
             headers: headers(session),
-            body: JSON.stringify({ emails: [email] }),
+            body: JSON.stringify({ accounts }),
         });
         expect(response.status).toEqual(200);
 
@@ -56,7 +58,7 @@ describe("User management route tests as admin", () => {
             headers: headers(session),
         });
         response = await response.json();
-        await models.user.destroy({ where: { email } });
+        await models.user.destroy({ where: { email: accounts[0].email } });
     });
     it("should be able to toggle a user capability", async () => {
         let user = users.filter((u) => u.administrator)[0];

@@ -32,7 +32,7 @@
             </div>
             <div v-if="data.collectionDataLoadingLogs.length" class="mt-6">
                 <div v-for="log of data.collectionDataLoadingLogs">
-                    <div v-if="log.msg.text">{{ log.date }} {{ log.msg.text }}</div>
+                    <div v-if="log.msg.text">{{ log.date }} - {{ log.msg.text }}</div>
                 </div>
                 <div v-if="data.collectionDataLoadingPercentage < 100">
                     <el-progress :percentage="data.collectionDataLoadingPercentage" />

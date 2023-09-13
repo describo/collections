@@ -361,11 +361,14 @@ async function prepareDataInserts({ collectionId, crate }) {
                     }
                 } else {
                     // string data of some sort
+                    if (instance === null && typeof instance === "object") {
+                        continue;
+                    }
                     propertyInserts.push({
                         id: uuidv4(),
                         property,
                         entityId: mapAtIdToEntityUUID[entity["@id"]],
-                        value: !isEmpty(instance) ?? "",
+                        value: instance,
                         collectionId,
                     });
                 }

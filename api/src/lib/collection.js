@@ -1,11 +1,13 @@
 import { demandAuthenticatedUser } from "../common/index.js";
 import fsExtraPkg from "fs-extra";
 const { pathExists, readJSON } = fsExtraPkg;
+import sequelize from "sequelize";
 import { Op } from "sequelize";
 import models from "../models/index.js";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 import lodashPkg from "lodash";
-const { orderBy, groupBy } = lodashPkg;
+const { orderBy, groupBy, intersection, isArray } = lodashPkg;
+import { validateId } from "../lib/crate-tools.js";
 
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
     let where = {
@@ -61,7 +63,13 @@ export async function getEntityTypes({ collectionId }) {
     return { types };
 }
 
-export async function loadEntity({ collectionId, id, stub = false }) {
+export async function loadEntity({
+    collectionId,
+    profile,
+    id,
+    stub = false,
+    resolveLinkedEntityAssociations = false,
+}) {
     const query = {
         where: { eid: id, collectionId },
         include: [
@@ -88,10 +96,12 @@ export async function loadEntity({ collectionId, id, stub = false }) {
 
     // get the entity data from the db
     let entity = await models.entity.findOne(query);
+    entity.etype = orderBy(entity.etype, (e) => e.entity_types.updatedAt);
 
     // if we need just a stub entry then return it here
     if (stub) {
         return {
+            id: entity.id,
             "@id": entity.eid,
             "@type": entity.etype.map((t) => t.name),
             name: entity.name,
@@ -101,7 +111,7 @@ export async function loadEntity({ collectionId, id, stub = false }) {
     // otherwise, fully reconstruct the entity along with the associations
     try {
         let reverse = await assembleEntityReverseConnections({ entity });
-        entity = assembleEntity({ entity });
+        entity = assembleEntity({ collectionId, entity, profile });
         entity["@reverse"] = reverse;
         return entity;
     } catch (error) {
@@ -112,34 +122,40 @@ export async function loadEntity({ collectionId, id, stub = false }) {
 
 function assembleEntity({ entity }) {
     let e = {
+        id: entity.id,
         "@id": entity.eid,
         "@type": assembleEntityType(entity.etype),
         name: entity.name,
     };
-    let properties = entity.properties.map((p) => {
+    let properties = [];
+    for (let p of entity.properties) {
         if (p?.value) {
-            return {
+            properties.push({
                 idx: p.id,
                 property: p.property,
                 value: p.value,
-            };
+                createdAt: p.createdAt,
+            });
         } else if (p.targetEntityId) {
-            return {
+            const tgtEntity = {
+                "@id": p.targetEntity.eid,
+                "@type": assembleEntityType(p.targetEntity.etype),
+                name: p.targetEntity.name,
+                associations: [],
+            };
+            properties.push({
                 idx: p.id,
                 property: p.property,
-                tgtEntity: {
-                    "@id": p.targetEntity.eid,
-                    "@type": assembleEntityType(p.targetEntity.etype),
-                    name: p.targetEntity.name,
-                    associations: [],
-                },
-            };
+                tgtEntity,
+                createdAt: p.createdAt,
+            });
         }
-    });
+    }
+    properties = orderBy(properties, "createdAt", "desc ");
     properties = groupBy(properties, "property");
     for (let property of Object.keys(properties)) {
         properties[property] = properties[property].map((p) => {
-            delete p.property;
+            // delete p.property;
             return p;
         });
     }
@@ -182,183 +198,210 @@ function assembleEntityType(types) {
     return types;
 }
 
-// TODO this code does not have tests yet
-// async function loadEntity(req) {
-//     console.time(`entity load time: ${req.params.entityId}`);
-//     let entity = await getEntity({
-//         id: req.params.entityId,
-//         collectionId: req.session.collection.id,
-//     });
-//     const reverseConnections = cloneDeep(entity.reverseConnections);
-//     let properties = {};
-//     for (let p of entity.properties) properties[p.property] = [];
-//     for (let p of entity.properties) {
-//         if (p.value)
-//             properties[p.property].push({
-//                 propertyId: p.id,
-//                 srcEntityId: p.entityId,
-//                 property: p.property,
-//                 value: p.value,
-//             });
-//         if (p.valueStringified)
-//             properties[p.property].push({
-//                 propertyId: p.id,
-//                 srcEntityId: p.entityId,
-//                 property: p.property,
-//                 value: JSON.parse(p.value),
-//             });
-//         if (p.targetEntity) {
-//             const tgtEntity = {
-//                 describoId: p.targetEntity.id,
-//                 "@id": p.targetEntity.eid,
-//                 "@type": p.targetEntity.etype.map((type) => type.name).join(", "),
-//                 name: p.targetEntity.name,
-//                 associations: [],
-//             };
-//             const typesToResolve = Object.keys(profile.resolve);
-//             const type = tgtEntity["@type"]?.split(",").map((t) => t.trim());
-//             const specificTypesToResolve = intersection(typesToResolve, type);
+async function resolveLinkedEntityAssociations({ collectionId, entity, profile }) {
+    // associations
+    // {
+    //     "property": "source",
+    //     "entity": {
+    //     "@id": "#person1",
+    //     "@type": [
+    //         "Person"
+    //     ],
+    //     "name": "person1",
+    //     "associations": []
+    //     }
+    // },
+    let resolveConfiguration = profile?.resolve;
+    if (!resolveConfiguration) return;
+    const resolvers = {};
+    resolveConfiguration.forEach((c) => {
+        c.types.forEach((type) => {
+            resolvers[type] = c.properties;
+        });
+    });
+    const typesToResolve = Object.keys(resolvers);
 
-//             let associations = [];
-//             for (let type of specificTypesToResolve) {
-//                 const propertiesToResolve = profile.resolve[type];
-//                 let e = await getEntity({
-//                     id: tgtEntity.describoId,
-//                     collectionId: req.session.collection.id,
-//                 });
-//                 let properties = e.properties;
-//                 for (let entityProperty of properties) {
-//                     if (propertiesToResolve.includes(entityProperty.property)) {
-//                         let entity = await getEntity({
-//                             id: entityProperty.targetEntityId,
-//                             collectionId: req.session.collection.id,
-//                             withProperties: false,
-//                         });
-//                         associations.push({
-//                             property: entityProperty.property,
-//                             entity: {
-//                                 describoId: entity.id,
-//                                 "@id": entity.eid,
-//                                 "@type": entity.etype.map((type) => type.name).join(", "),
-//                                 name: entity.name,
-//                             },
-//                         });
-//                     }
-//                 }
-//             }
-//             tgtEntity.associations = associations;
-//             properties[p.property].push({
-//                 propertyId: p.id,
-//                 srcEntityId: p.entityId,
-//                 property: p.property,
-//                 tgtEntityId: p.targetEntityId,
-//                 tgtEntity,
-//             });
-//         }
-//     }
-//     let entityData = entity.get();
-//     delete entityData.properties;
-//     entityData = {
-//         describoId: entity.id,
-//         "@id": entity.eid,
-//         "@type": entity.etype.map((type) => type.name),
-//         name: entity.name,
-//         properties,
-//         reverseConnections: groupBy(reverseConnections, "property"),
-//     };
-//     console.timeEnd(`entity load time: ${req.params.entityId}`);
-//     return { entity: entityData };
-// }
+    // console.log(query);
 
-// TODO this code does not have tests yet
-// async function createEntityHandler(req) {
-//     let { entity, property } = req.body;
+    // get the entity data from the db
+    for (let property of Object.keys(entity["@properties"])) {
+        for (let instance of entity["@properties"][property]) {
+            if (!instance.tgtEntity) return instance;
 
-//     // create the new entity
-//     entity = await this.models.entity.findOrCreate({
-//         where: {
-//             collectionId: req.session.collection.id,
-//             eid: entity["@id"],
-//         },
-//         defaults: {
-//             entityId: req.params.entityId,
-//             collectionId: req.session.collection.id,
-//             eid: entity["@id"],
-//             etype: concat(entity["@type"]),
-//             name: entity.name,
-//         },
-//     });
-//     entity = entity[0];
+            // for all entities linked of the source entity
+            //   if the type matches the `resolveConfiguration`
+            const specificTypesToResolve = intersection(
+                typesToResolve,
+                instance.tgtEntity["@type"]
+            );
+            const resolveAssociations = specificTypesToResolve.length > 0;
+            if (resolveAssociations) {
+                // lookup the full entity
+                // let instanceFullEntity = this.getEntity({
+                //     id: instance.tgtEntity["@id"],
+                //     resolveLinkedEntityAssociations: false,
+                // });
+                // let instanceFullEntity = await models.entity.findOne({
+                //     where: { eid: instance.tgtEntity["@id"], collectionId },
+                //     include: [
+                //         {
+                //             model: models.type,
+                //             as: "etype",
+                //         },
+                //     ],
+                // });
+                // // get the list of properties to resolve
+                // const propertiesToResolve = flattenDeep(
+                //     specificTypesToResolve.map((type) => resolvers[type])
+                // );
+                // // for each property, resolve all the attached entities
+                // //  and store in the associations array on the source
+                // propertiesToResolve.forEach((property) => {
+                //     instance.tgtEntity.associations.push(
+                //         ...instanceFullEntity["@properties"][property].map((e) => ({
+                //             property,
+                //             entity: e.tgtEntity,
+                //         }))
+                //     );
+                // });
+            }
+            return instance;
+        }
+    }
+}
 
-//     // associate it to the parent entity
-//     await this.models.property.create({
-//         property: property,
-//         collectionId: req.session.collection.id,
-//         entityId: req.params.entityId,
-//         targetEntityId: entity.id,
-//     });
-// }
+// TODO none of this is tested yet
+export async function createEntity({ collectionId, entity }) {
+    let entityModel = await models.entity.findOrCreate({
+        where: {
+            collectionId,
+            eid: entity["@id"],
+        },
+        defaults: {
+            collectionId,
+            eid: entity["@id"],
+            name: entity.name,
+        },
+    });
+    entityModel = entityModel[0];
 
-// TODO this code does not have tests yet
-// async function deleteEntityHandler(req) {
-//     // delete the new entity
-//     await this.models.entity.destroy({
-//         where: {
-//             collectionId: req.session.collection.id,
-//             id: req.params.entityId,
-//         },
-//     });
-// }
+    let types = asArray(entity["@type"]);
+    for (let type of types) {
+        type = await models.type.findOrCreate({
+            where: { collectionId, name: type },
+            defaults: {
+                collectionId,
+                name: type,
+            },
+        });
+        type = type[0];
+        await entityModel.addEtype(type);
+    }
+    return entityModel;
+}
 
-// TODO this code does not have tests yet
-// async function updateEntityHandler(req) {
-//     let entity = await this.models.entity.findOne({
-//         where: { id: req.params.entityId, collectionId: req.session.collection.id },
-//     });
-//     if (req.body.name) entity.name = req.body.name;
-//     if (req.body["@id"]) entity.eid = req.body["@id"];
-//     await entity.save();
-// }
+export async function linkEntities({ collectionId, sourceEntity, property, targetEntity }) {
+    if (!sourceEntity.id || !property || !targetEntity.id) {
+        throw new Error(`'linkEntities' missing required params`);
+    }
+    property = await models.property.create({
+        property: property,
+        collectionId,
+        entityId: sourceEntity.id,
+        targetEntityId: targetEntity.id,
+    });
+}
 
-// TODO this code does not have tests yet
-// async function addPropertyHandler(req) {
-//     await this.models.property.create({
-//         property: req.body.property,
-//         collectionId: req.session.collection.id,
-//         entityId: req.params.entityId,
-//         value: req.body.value,
-//     });
-// }
+export async function deleteEntity({ collectionId, entityId }) {
+    // delete the new entity
+    await models.entity.destroy({
+        where: {
+            collectionId,
+            eid: entityId,
+        },
+    });
+    return {};
+}
 
-// TODO this code does not have tests yet
-// async function updatePropertyHandler(req) {
-//     let property = await this.models.property.findOne({
-//         where: { id: req.params.propertyId, collectionId: req.session.collection.id },
-//     });
-//     property.value = req.body.value;
-//     await property.save();
-// }
+export async function updateEntity({
+    collectionId,
+    entityId,
+    name = undefined,
+    id = undefined,
+    type = undefined,
+}) {
+    let entity = await models.entity.findOne({
+        where: { eid: entityId, collectionId },
+        include: [{ model: models.type, as: "etype" }],
+    });
+    entity["@type"] = entity.etype.map((t) => t.name);
 
-// TODO this code does not have tests yet
-// async function deletePropertyHandler(req) {
-//     let property = await this.models.property.findOne({
-//         where: { id: req.params.propertyId, collectionId: req.session.collection.id },
-//     });
-//     if (property?.targetEntityId) {
-//         let count = await this.models.property.count({
-//             where: { targetEntityId: property.targetEntityId },
-//         });
-//         if (count <= 1) {
-//             await this.models.entity.destroy({ where: { id: property.targetEntityId } });
-//         }
-//     }
-//     await property.destroy();
-// }
+    if (name) {
+        entity.name = name;
+        await entity.save();
+    } else if (id) {
+        let { isValid } = validateId({ id, type: entity["@type"] });
+        if (!isValid) id = `#${encodeURIComponent(id)}`;
+        entity.eid = id;
+        await entity.save();
+    } else if (type) {
+        // remove all existing type associations
+        for (let type of entity.etype) {
+            await entity.removeEtype(type);
+        }
 
-// function asArray(value) {
-//     return !isArray(value) ? [value] : value;
-// }
+        // create the new state
+        for (let t of asArray(type)) {
+            let typeModel = await models.type.findOne({ where: { name: t } });
+            if (!typeModel) {
+                typeModel = await models.type.create({ name: t, collectionId });
+            }
+            await entity.addEtype(typeModel);
+        }
+    }
 
-// function concat(value) {
-//     return asArray(value).join(", ");
-// }
+    return { entity: { "@id": entity.eid } };
+}
+
+export async function createProperty({ collectionId, entityId, property, value }) {
+    const entity = await models.entity.findOne({ where: { eid: entityId } });
+    property = await models.property.create({
+        property,
+        value,
+        collectionId,
+        entityId: entity.id,
+    });
+    return {};
+}
+
+export async function updateProperty({ collectionId, propertyId, value }) {
+    let property = await models.property.findOne({
+        where: { id: propertyId, collectionId },
+    });
+    property.value = value;
+    await property.save();
+    return {};
+}
+
+export async function deleteProperty({ collectionId, propertyId }) {
+    let property = await models.property.findOne({
+        where: { id: propertyId, collectionId },
+    });
+    // if by deleting this property we end up with a dangling entity
+    //   do we automatically delete that entity or leave it lying around?
+    //   need to think about this some more
+    // if (property?.targetEntityId) {
+    //     let count = await this.models.property.count({
+    //         where: { targetEntityId: property.targetEntityId },
+    //     });
+    //     if (count <= 1) {
+    //         await this.models.entity.destroy({ where: { id: property.targetEntityId } });
+    //     }
+    // }
+    await property.destroy();
+    return {};
+}
+
+function asArray(value) {
+    return !isArray(value) ? [value] : value;
+}

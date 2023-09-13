@@ -5,6 +5,7 @@ import { createSession } from "../lib/session";
 import { createNewCollection } from "../lib/admin.js";
 import { loadCrateIntoDatabase } from "../lib/crate-tools.js";
 import models from "../models/index.js";
+import { isEmpty } from "lodash";
 import { readJSON } from "fs-extra";
 import path from "path";
 const chance = require("chance").Chance();
@@ -53,7 +54,26 @@ describe("Test the collection route endpoints", () => {
         });
         expect(response.status).toEqual(200);
         let { profile } = await response.json();
-        expect(profile).toEqual({});
+        expect(isEmpty(profile)).toBe(false);
+        expect(Object.keys(profile.classes).sort()).toEqual([
+            "ArchivalResource",
+            "ArchivalResourceRelationship",
+            "CreativeWork",
+            "Dataset",
+            "DigitalObject",
+            "DigitalObjectRelationship",
+            "DigitalObjectVersion",
+            "Entity",
+            "Function",
+            "FunctionRelationship",
+            "Hotel",
+            "Organisation",
+            "Person",
+            "PublishedResource",
+            "Relationship",
+            "Thing",
+            "URL",
+        ]);
     });
     test("it should be able to the users' collections", async () => {
         const user = users.filter((u) => u.administrator)[0];
@@ -303,5 +323,207 @@ describe("Test the collection route endpoints", () => {
             headers: headers(session),
         });
         expect(await response.status).toEqual(400);
+    });
+    test("it should be able to store / get a profile for a collection", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+
+        // get the default profile
+        let response = await fetch(`${host}/profile/default`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(response.status).toEqual(200);
+        let { profile } = await response.json();
+
+        // set it as the collection profile
+        response = await fetch(`${host}/collections/${collection.code}/profile`, {
+            method: "POST",
+            headers: headers(session),
+            body: JSON.stringify({ profile }),
+        });
+        expect(response.status).toEqual(200);
+
+        //  then retrieve it and confirm it's the same as what we put in
+        response = await fetch(`${host}/collections/${collection.code}/profile`, {
+            method: "GET",
+            headers: headers(session),
+        });
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.profile).toMatchObject(profile);
+    });
+    test("it should be able to interact with entities in the collection", async () => {
+        const user = users.filter((u) => u.administrator)[0];
+        let session = await createSession({ user });
+
+        // create an entity
+        let response = await fetch(`${host}/collections/${collection.code}/entities`, {
+            method: "POST",
+            headers: headers(session),
+            body: JSON.stringify({
+                "@id": "#dataset",
+                "@type": ["Dataset"],
+                name: "dataset",
+            }),
+        });
+        expect(response.status).toEqual(200);
+
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.entity).toMatchObject({
+            "@id": "#dataset",
+            "@type": ["Dataset"],
+            "@properties": {},
+            "@reverse": {},
+        });
+
+        // delete it
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "DELETE",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+
+        // create an entity and link it to the root dataset
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("./")}`,
+            {
+                method: "POST",
+                headers: headers(session),
+                body: JSON.stringify({
+                    property: "dataset",
+                    entity: {
+                        "@id": "#dataset",
+                        "@type": ["Dataset"],
+                        name: "dataset",
+                    },
+                }),
+            }
+        );
+        expect(response.status).toEqual(200);
+
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("./")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.entity["@properties"]).toMatchObject({
+            dataset: [{ property: "dataset" }],
+        });
+
+        // update an entities' core properties
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "PUT",
+                headers: headers(session),
+                body: JSON.stringify({
+                    name: "new dataset name",
+                }),
+            }
+        );
+        expect(response.status).toEqual(200);
+
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.entity.name).toEqual("new dataset name");
+
+        // add a property to an entity
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent(
+                "#dataset"
+            )}/properties`,
+            {
+                method: "POST",
+                headers: headers(session),
+                body: JSON.stringify({
+                    property: "something",
+                    value: "value",
+                }),
+            }
+        );
+        expect(response.status).toEqual(200);
+
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.entity["@properties"]).toMatchObject({
+            something: [{ property: "something", value: "value" }],
+        });
+
+        // update a property on an entity
+        response = await fetch(
+            `${host}/collections/${collection.code}/properties/${response.entity["@properties"]["something"][0].idx}`,
+            {
+                method: "PUT",
+                headers: headers(session),
+                body: JSON.stringify({
+                    value: "new value",
+                }),
+            }
+        );
+        expect(response.status).toEqual(200);
+
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.entity["@properties"]).toMatchObject({
+            something: [{ property: "something", value: "new value" }],
+        });
+
+        // delete an entity property
+        response = await fetch(
+            `${host}/collections/${collection.code}/properties/${response.entity["@properties"]["something"][0].idx}`,
+            {
+                method: "DELETE",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+
+        response = await fetch(
+            `${host}/collections/${collection.code}/entities/${encodeURIComponent("#dataset")}`,
+            {
+                method: "GET",
+                headers: headers(session),
+            }
+        );
+        expect(response.status).toEqual(200);
+        response = await response.json();
+        expect(response.entity["@properties"]).toMatchObject({});
     });
 });

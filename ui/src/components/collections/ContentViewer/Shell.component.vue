@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col">
-        <div class="text-lg mb-10">File: {{ props.file }}</div>
+        <div class="text-lg mb-10">{{ props.file }}</div>
         <component v-bind:is="component" :link="data?.link" v-if="data.link"></component>
         <!-- <div class="text-center" v-if="!component">
             There is currently no viewer available to display this content.
@@ -20,7 +20,10 @@ import RenderAudioComponent from "./RenderAudio.component.vue";
 import RenderVideoComponent from "./RenderVideo.component.vue";
 import RenderDocumentComponent from "./RenderDocument.component.vue";
 // import RenderXmlComponent from "./RenderXML.component.vue";
+import { useRoute, useRouter } from "vue-router";
 const $http = inject("$http");
+const $route = useRoute();
+const $router = useRouter();
 const $store = useStore();
 
 const props = defineProps({
@@ -74,7 +77,7 @@ onMounted(() => {
 
 async function getFileLink() {
     let response = await $http.get({
-        route: `/collections/${$store.state.currentCollection.code}/file/link`,
+        route: `/collections/${$route.params.code}/file/link`,
         params: { path: props.file },
     });
     if (response.status !== 200) {
@@ -84,5 +87,18 @@ async function getFileLink() {
     let { link } = await response.json();
     data.link = link;
 }
-function describeItem() {}
+async function describeItem() {
+    let response = await $http.post({
+        route: `/collections/${$route.params.code}/entities`,
+        body: {
+            "@id": props.file,
+            "@type": ["File"],
+            name: props.file,
+        },
+    });
+    if (response.status === 200) {
+        let { entity } = await response.json();
+        $router.push({ name: "collections.entity", query: { id: btoa(entity["@id"]) } });
+    }
+}
 </script>

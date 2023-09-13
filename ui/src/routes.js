@@ -6,7 +6,7 @@ import CollectionsComponent from "./components/collections/Shell.component.vue";
 import RenderEntityComponent from "./components/collections/RenderEntity.component.vue";
 import AdminComponent from "./components/admin/Shell.component.vue";
 import AdminManageUsersComponent from "./components/admin/users/ManageUsers.component.vue";
-import AdminWhitelistUsersComponent from "./components/admin/users/WhitelistUsers.component.vue";
+import AdminCreateUserAccountsComponent from "./components/admin/users/CreateUserAccounts.component.vue";
 import AdminLogsComponent from "./components/admin/Logs.component.vue";
 import AdminManageCollectionComponent from "./components/admin/ManageCollection.component.vue";
 import HTTPService from "./http.service";
@@ -28,7 +28,6 @@ const routes = [
                 component: CollectionsComponent,
                 props: true,
             },
-
             {
                 name: "collections.entity",
                 path: "collections/:code/entity",
@@ -48,20 +47,20 @@ const routes = [
                     {
                         name: "admin.users.invite",
                         path: "users/permitted",
-                        component: AdminWhitelistUsersComponent,
-                        meta: { name: "permitted users" },
+                        component: AdminCreateUserAccountsComponent,
+                        meta: { name: "Permitted Users" },
                     },
                     {
                         name: "admin.users.manage",
                         path: "users",
                         component: AdminManageUsersComponent,
-                        meta: { name: "manage users" },
+                        meta: { name: "Manage Users" },
                     },
                     {
                         name: "admin.logs",
                         path: "logs",
                         component: AdminLogsComponent,
-                        meta: { name: "view system logs" },
+                        meta: { name: "View System Logs" },
                     },
                 ],
             },
