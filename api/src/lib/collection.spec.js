@@ -11,6 +11,9 @@ import {
     linkEntities,
     deleteEntity,
     updateEntity,
+    createProperty,
+    updateProperty,
+    deleteProperty,
 } from "./collection.js";
 import path from "path";
 import models from "../models/index.js";
@@ -252,7 +255,7 @@ describe("Test the collection lib endpoints", () => {
 
         await deleteEntity({ collectionId, entityId: entity.id });
     });
-    test.only("test updating entity information", async () => {
+    test("test updating entity information", async () => {
         let entity = {
             "@id": chance.url(),
             "@type": "Dataset",
@@ -283,7 +286,7 @@ describe("Test the collection lib endpoints", () => {
         result = await loadEntity({ collectionId, id: `#${id}` });
         expect(result["@id"]).toEqual(`#${id}`);
     });
-    test.only("test updating entity properties", async () => {
+    test("test updating entity properties", async () => {
         let entity = {
             "@id": chance.url(),
             "@type": "Dataset",
@@ -296,22 +299,67 @@ describe("Test the collection lib endpoints", () => {
             entity,
         });
 
-        //  update entity name
-        let name = chance.word();
-        await updateEntity({ collectionId, entityId: entity["@id"], name });
+        await createProperty({
+            collectionId,
+            entityId: entity["@id"],
+            property: "something",
+            value: "value",
+        });
         let result = await loadEntity({ collectionId, id: entity["@id"] });
-        expect(result.name).toEqual(name);
+        expect(result["@properties"]).toMatchObject({
+            something: [{ property: "something", value: "value" }],
+        });
 
-        //  update entity @type
-        let type = chance.word();
-        await updateEntity({ collectionId, entityId: entity["@id"], type });
+        await createProperty({
+            collectionId,
+            entityId: entity["@id"],
+            property: "something",
+            value: "value2",
+        });
         result = await loadEntity({ collectionId, id: entity["@id"] });
-        expect(result["@type"]).toEqual([type]);
+        expect(result["@properties"]).toMatchObject({
+            something: [
+                { property: "something", value: "value" },
+                { property: "something", value: "value2" },
+            ],
+        });
 
-        //  update entity @id
-        let id = chance.word();
-        await updateEntity({ collectionId, entityId: entity["@id"], id });
-        result = await loadEntity({ collectionId, id: `#${id}` });
-        expect(result["@id"]).toEqual(`#${id}`);
+        await createProperty({
+            collectionId,
+            entityId: entity["@id"],
+            property: "else",
+            value: "value2",
+        });
+        result = await loadEntity({ collectionId, id: entity["@id"] });
+        expect(result["@properties"]).toMatchObject({
+            something: [
+                { property: "something", value: "value" },
+                { property: "something", value: "value2" },
+            ],
+            else: [{ property: "else" }],
+        });
+
+        await deleteProperty({
+            collectionId,
+            propertyId: result["@properties"]["something"][0].idx,
+        });
+
+        result = await loadEntity({ collectionId, id: entity["@id"] });
+        expect(result["@properties"]).toMatchObject({
+            something: [{ property: "something", value: "value2" }],
+            else: [{ property: "else" }],
+        });
+
+        await updateProperty({
+            collectionId,
+            propertyId: result["@properties"]["something"][0].idx,
+            value: "new",
+        });
+
+        result = await loadEntity({ collectionId, id: entity["@id"] });
+        expect(result["@properties"]).toMatchObject({
+            something: [{ property: "something", value: "new" }],
+            else: [{ property: "else" }],
+        });
     });
 });

@@ -44,10 +44,11 @@ export function setupRoutes(fastify, options, done) {
         fastify.post("/collections/:code/entities/:entityId", createAndLinkEntityHandler);
         fastify.put("/collections/:code/entities/:entityId", updateEntityHandler);
         fastify.delete("/collections/:code/entities/:entityId", deleteEntityHandler);
-        fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
+
         fastify.put("/collections/:code/entities/:entityId/link", linkEntityHandler);
         fastify.put("/collections/:code/entities/:entityId/unlink", unlinkEntityHandler);
 
+        fastify.post("/collections/:code/entities/:entityId/properties", addPropertyHandler);
         fastify.put("/collections/:code/properties/:propertyId", updatePropertyHandler);
         fastify.delete("/collections/:code/properties/:propertyId", deletePropertyHandler);
 
@@ -233,7 +234,6 @@ async function getCollectionProfileHandler(req) {
     return { profile };
 }
 
-// TODO: this code does not have tests yet
 async function postCollectionProfileHandler(req) {
     req.session.collection.profile = req.body.profile;
     await req.session.collection.save();
@@ -268,7 +268,6 @@ async function loadEntityHandler(req) {
     return { entity };
 }
 
-// TODO this code does not have tests yet
 async function createEntityHandler(req) {
     const collectionId = req.session.collection.id;
 
@@ -281,7 +280,6 @@ async function createEntityHandler(req) {
     return { entity: { "@id": entity.eid } };
 }
 
-// TODO this code does not have tests yet
 async function createAndLinkEntityHandler(req) {
     const collectionId = req.session.collection.id;
 
@@ -303,7 +301,6 @@ async function createAndLinkEntityHandler(req) {
     return {};
 }
 
-// TODO this code does not have tests yet
 async function updateEntityHandler(req) {
     const entityId = decodeURIComponent(req.params.entityId);
     const collectionId = req.session.collection.id;
@@ -316,7 +313,6 @@ async function updateEntityHandler(req) {
     });
 }
 
-// TODO this code does not have tests yet
 async function deleteEntityHandler(req) {
     // delete the new entity
     await deleteEntity({
@@ -358,18 +354,15 @@ async function unlinkEntityHandler(req) {
     return {};
 }
 
-// TODO this code does not have tests yet
 async function addPropertyHandler(req) {
-    const sourceEntityId = decodeURIComponent(req.params.entityId);
     return await createProperty({
         collectionId: req.session.collection.id,
-        sourceEntityId,
+        entityId: decodeURIComponent(req.params.entityId),
         property: req.body.property,
         value: req.body.value,
     });
 }
 
-// TODO this code does not have tests yet
 async function updatePropertyHandler(req) {
     return await updateProperty({
         collectionId: req.session.collection.id,
@@ -378,10 +371,9 @@ async function updatePropertyHandler(req) {
     });
 }
 
-// TODO this code does not have tests yet
 async function deletePropertyHandler(req) {
     return await deleteProperty({
-        collectionId: req.session.collectionId,
+        collectionId: req.session.collection.id,
         propertyId: req.params.propertyId,
     });
 }
