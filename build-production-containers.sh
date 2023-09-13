@@ -4,6 +4,8 @@
 
 VERSION=$(grep version api/package.json | awk -F ': ' '{ print $2 }' | sed 's/"//g' | sed 's/,//' )
 
+whereis docker
+
 docker build --push --rm \
     -t ghcr.io/describo/describo-collections-api:latest \
     -t ghcr.io/describo/describo-collections-api:${VERSION} \
