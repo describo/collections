@@ -1,6 +1,6 @@
 {
     "name": "api",
-    "version": "0.5.12",
+    "version": "0.5.13",
     "description": "",
     "author": "Marco La Rosa",
     "main": "index.js",
