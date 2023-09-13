@@ -15,7 +15,7 @@ jobs:
     # Platforms to build on/for
     strategy:
       matrix:
-        os: [debian-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Check out Git repository
