@@ -7,7 +7,7 @@
                     <el-input v-model="data.form.name" />
                     <div class="text-sm">A descriptive name for this collection.</div>
                 </el-form-item>
-                <el-form-item label="Project Code">
+                <el-form-item label="Collection Project Code">
                     <el-input v-model="data.form.code" minlength="4" maxlength="4" />
                     <div class="text-sm">A unique 4 letter code to identify this collection.</div>
                 </el-form-item>
