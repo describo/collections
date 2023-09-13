@@ -28,5 +28,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build the application
+      - name: Build the containers
         run: ./build-production-containers.sh
+        shell: bash
