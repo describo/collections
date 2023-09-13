@@ -353,7 +353,7 @@ describe("Test the collection route endpoints", () => {
         response = await response.json();
         expect(response.profile).toMatchObject(profile);
     });
-    test.only("it should be able to interact with entities in the collection", async () => {
+    test("it should be able to interact with entities in the collection", async () => {
         const user = users.filter((u) => u.administrator)[0];
         let session = await createSession({ user });
 
