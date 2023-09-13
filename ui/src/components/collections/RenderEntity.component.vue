@@ -61,8 +61,9 @@
 <script setup>
 import { ElMessage, ElButton, ElPopconfirm, ElDrawer } from "element-plus";
 import DescriboCrateBuilderComponent from "@describo/crate-builder-component/src/crate-builder/RenderEntity/Shell.component.vue";
+import { $t, i18next } from "@describo/crate-builder-component/src/crate-builder/i18n.js";
 // import DescriboCrateBuilderComponent from "/srv/describo/src/crate-builder/RenderEntity/Shell.component.vue";
-import { $t, i18next } from "/srv/describo/src/crate-builder/i18n.js";
+// import { $t, i18next } from "/srv/describo/src/crate-builder/i18n.js";
 i18next.changeLanguage("en");
 
 import ContentViewerComponent from "./ContentViewer/Shell.component.vue";
