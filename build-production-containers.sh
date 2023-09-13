@@ -1,6 +1,6 @@
 # #!/usr/bin/env bash
 
-apt-get update && apt-get install -y docker.io
+\sudo apt-get update && \sudo apt-get install -y docker.io
 
 docker build --push --rm \
     -t ghcr.io/describo/describo-collections-api:latest \
