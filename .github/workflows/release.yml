@@ -29,5 +29,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the containers
-        run: ./build-production-containers.sh
+        run: ./build-production-containers.sh ${{  github.ref_name }}
         shell: bash

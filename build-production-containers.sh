@@ -2,7 +2,8 @@
 
 # \sudo apt-get update && \sudo apt-get install -y docker.io
 
-VERSION=$(grep version api/package.json | awk -F ': ' '{ print $2 }' | sed 's/"//g' | sed 's/,//' )
+VERSION=$1
+echo "Building $VERSION"
 
 docker build --push --rm \
     -t ghcr.io/describo/describo-collections-api:latest \
