@@ -436,6 +436,14 @@ export function validateId({ id, type }) {
         if (type.match(/file/i)) return { isValid: true };
     }
 
+    // if there are spaces in the id - encode them
+    if (id.match(/\s+/)) {
+        console.warn(
+            `Entity @id: '${id}' has spaces in it. These should be encoded. Describo will do this to pass the validate test but the data will not be changed.`
+        );
+        id = id.replace(/\s+/g, "%20");
+    }
+
     // @id is the ro crate root descriptor
     if (id === "ro-crate-metadata.json") return { isValid: true };
 
@@ -457,17 +465,21 @@ export function validateId({ id, type }) {
     if (id.match(/arcp:\/\/ni,sha-256;,.*/)) return { isValid: true };
 
     // otherwise check that the id is a valid IRI
-    let result = validateIriPkg.validateIri(id, validateIriPkg.IriValidationStrategy.Strict);
-    if (!result) {
-        // it's valid
-        return { isValid: true };
-    } else if (result?.message?.match(/Invalid IRI according to RFC 3987:/)) {
-        // otherwise
-        const message = `${result.message.replace(
-            /Invalid IRI according to RFC 3987:/,
-            "Invalid identifier"
-        )}. See https://github.com/describo/crate-builder-component/blob/master/README.identifiers.md for more information.`;
-        return { isValid: false, message };
+    try {
+        let result = validateIriPkg.validateIri(id, validateIriPkg.IriValidationStrategy.Strict);
+        if (!result) {
+            // it's valid
+            return { isValid: true };
+        } else if (result?.message?.match(/Invalid IRI according to RFC 3987:/)) {
+            // otherwise
+            const message = `${result.message.replace(
+                /Invalid IRI according to RFC 3987:/,
+                "Invalid identifier"
+            )}. See https://github.com/describo/crate-builder-component/blob/master/README.identifiers.md for more information.`;
+            return { isValid: false, message };
+        }
+    } catch (error) {
+        return { isValid: false };
     }
 }
 
