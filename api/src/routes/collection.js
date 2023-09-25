@@ -75,6 +75,7 @@ async function getCollectionsHandler(req) {
     let { rows: collections, count: total } = await models.collection.findAndCountAll({
         attributes: ["id", "name", "code"],
         include: [{ model: models.user, where: { id: req.session.user.id }, attributes: [] }],
+        order: [["name", "ASC"]],
         limit,
         offset,
     });
