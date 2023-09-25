@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col">
-        <div class="text-lg mb-10">{{ props.file }}</div>
+        <div class="text-lg mb-10">{{ file }}</div>
         <component v-bind:is="component" :link="data?.link" v-if="data.link"></component>
         <!-- <div class="text-center" v-if="!component">
             There is currently no viewer available to display this content.
@@ -55,6 +55,10 @@ const data = reactive({
     transcriptionTypes: ["eaf", "trs", "ixt", "flextext"],
     xmlTypes: ["xml", "eaf", "trs", "ixt", "flextext"],
 });
+
+let file = computed(() => {
+    return props.file.replace(/^\//, "");
+});
 let component = computed(() => {
     const extension = props.file.split(".").pop();
     if (data.imageTypes.includes(extension)) {
@@ -91,9 +95,9 @@ async function describeItem() {
     let response = await $http.post({
         route: `/collections/${$route.params.code}/entities`,
         body: {
-            "@id": props.file,
+            "@id": file.value,
             "@type": ["File"],
-            name: props.file,
+            name: file.value,
         },
     });
     if (response.status === 200) {
