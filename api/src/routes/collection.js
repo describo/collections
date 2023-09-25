@@ -205,7 +205,9 @@ async function deleteCollectionDeleteFolderHandler(req, res) {
 async function getCollectionFileLinkHandler(req) {
     let { bucket } = await getS3Handle({ bucket: req.session.collection.bucket });
     let link = await bucket.getPresignedUrl({
-        target: `${req.session.configuration.api.repositoryPath}${req.query.path}`,
+        target: path.normalize(
+            `/${req.session.configuration.api.repositoryPath}/${req.query.path}`
+        ),
     });
     return { link };
 }
