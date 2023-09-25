@@ -42,11 +42,38 @@ async function main() {
         process.exit();
     }
 
-    if (process.env.NODE_ENV === "development") {
-        fastify.register(cors, { origin: "*" });
-    }
-    fastify.register(fastifyIO);
+    await fastify.register(cors, {
+        origin: "*",
+        methods: ["OPTIONS", "GET", "HEAD", "PATCH", "POST", "DELETE"],
+        allowedHeaders: [
+            "content-type",
+            "upload-length",
+            "content-length",
+            "upload-offset",
+            "upload-expires",
+            "location",
+            "upload-metadata",
+            "tus-resumable",
+            "tus-version",
+            "tus-max-size",
+            "tus-extension",
+        ],
+        exposedHeaders: [
+            "content-type",
+            "upload-length",
+            "content-length",
+            "upload-offset",
+            "upload-expires",
+            "location",
+            "upload-metadata",
+            "tus-resumable",
+            "tus-version",
+            "tus-max-size",
+            "tus-extension",
+        ],
+    });
     fastify.register(fastifySensible);
+    fastify.register(fastifyIO);
     fastify.register(fastifyCompress);
     fastify.register((fastify, options, done) => {
         fastify.addHook("preHandler", async (req, res) => {
