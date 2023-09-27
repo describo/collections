@@ -112,7 +112,7 @@ export async function loadEntity({
     try {
         let reverse = await assembleEntityReverseConnections({ entity });
         entity = assembleEntity({ collectionId, entity, profile });
-        if (resolveLinkedEntityAssociations) {
+        if (resolveLinkedEntityAssociations && id !== "./") {
             console.log("resolve associations");
             await resolveAssociations({ collectionId, entity, profile });
         }
