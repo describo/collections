@@ -2,7 +2,7 @@
     <el-card>
         <template #header>
             <div class="card-header">
-                <span>Create a new Entity</span>
+                <span>Create a new entity</span>
             </div>
         </template>
         <el-form :model="data.form" label-width="120px">
