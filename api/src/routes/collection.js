@@ -16,6 +16,7 @@ import {
     updateProperty,
     deleteProperty,
 } from "../lib/collection.js";
+import { createDefaultROCrateFile, loadCrateIntoDatabase } from "../lib/crate-tools.js";
 const log = getLogger();
 
 export function setupRoutes(fastify, options, done) {
@@ -261,14 +262,32 @@ async function getEntityTypesHandler(req) {
 
 async function loadEntityHandler(req) {
     const { entityId } = req.params;
+    const id = decodeURIComponent(entityId);
     const { stub } = req.query;
-    let entity = await loadEntity({
-        collectionId: req.session.collection.id,
-        profile: req.session.collection.profile,
-        id: decodeURIComponent(entityId),
-        stub,
-    });
-    return { entity };
+    try {
+        let entity = await loadEntity({
+            collectionId: req.session.collection.id,
+            profile: req.session.collection.profile,
+            id,
+            stub,
+        });
+        return { entity };
+    } catch (error) {
+        if (id === "./") {
+            // if there's no root dataset it has to be because the collection is new
+            //  and no data has been loaded in. So, create a root dataset and return that.
+            let crate = createDefaultROCrateFile({ name: req.session.collection.name });
+            await loadCrateIntoDatabase({ collectionId: req.session.collection.id, crate });
+            let entity = await loadEntity({
+                collectionId: req.session.collection.id,
+                profile: req.session.collection.profile,
+                id: "./",
+            });
+            return { entity };
+        } else {
+            console.error(id, error);
+        }
+    }
 }
 
 async function createEntityHandler(req) {

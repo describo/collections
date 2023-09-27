@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-progress
-            percentage="100"
+            :percentage="100"
             :show-text="false"
             :indeterminate="true"
             v-if="data.loading"
@@ -179,7 +179,6 @@ async function loadEntity({ id }) {
     const t0 = performance.now();
     if (base64regex.test(id)) id = atob(id);
     if (id === "./") data.loading = true;
-    console.log(id);
     let response = await $http.get({
         route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}`,
     });
@@ -188,7 +187,7 @@ async function loadEntity({ id }) {
     }
     response = await response.json();
     const t1 = performance.now();
-    console.log(t1 - t0);
+    console.debug(`entity load time: ${t1 - t0}`);
     data.loading = false;
     data.entity = response.entity;
     $router.push({ query: { id: btoa(id) } });

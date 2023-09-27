@@ -3,6 +3,8 @@
         <div class="bg-stone-200 p-8 text-2xl text-slate-800">{{ collection.name }}</div>
 
         <div class="p-4 flex flex-col space-y-2">
+            <LoadRootDatasetComponent />
+
             <div class="flex flex-col space-y-2 xl:flex-row xl:space-y-0 xl:space-x-2">
                 <CreateNewEntityComponent class="w-full xl:w-2/5" />
                 <BrowseCollectionComponent class="w-full xl:w-3/5" />
@@ -13,6 +15,7 @@
 </template>
 
 <script setup>
+import LoadRootDatasetComponent from "./LoadRootDataset.component.vue";
 import BrowseCollectionComponent from "./BrowseCollection.component.vue";
 import FileManagerComponent from "./FileManager.component.vue";
 import CreateNewEntityComponent from "./CreateNewEntity.component.vue";
