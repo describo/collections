@@ -5,8 +5,10 @@
                 <span>Root Dataset</span>
             </div>
         </template>
-        <div class="flex flex-row space-x-2 items-center">
-            <div class="text-xl">The root dataset is the entry point to the network:</div>
+        <div class="flex flex-col lg:flex-row lg:space-x-2">
+            <div class="text-xl">
+                The root dataset is the entry point to the linked data structure:
+            </div>
             <div>
                 <el-button
                     type="primary"
