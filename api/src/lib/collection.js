@@ -6,7 +6,7 @@ import { Op } from "sequelize";
 import models from "../models/index.js";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 import lodashPkg from "lodash";
-const { orderBy, groupBy, intersection, isArray } = lodashPkg;
+const { orderBy, groupBy, intersection, isArray, flattenDeep, uniqBy } = lodashPkg;
 import { validateId } from "../lib/crate-tools.js";
 
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
@@ -68,7 +68,7 @@ export async function loadEntity({
     profile,
     id,
     stub = false,
-    resolveLinkedEntityAssociations = false,
+    resolveLinkedEntityAssociations = true,
 }) {
     const query = {
         where: { eid: id, collectionId },
@@ -112,6 +112,10 @@ export async function loadEntity({
     try {
         let reverse = await assembleEntityReverseConnections({ entity });
         entity = assembleEntity({ collectionId, entity, profile });
+        if (resolveLinkedEntityAssociations) {
+            console.log("resolve associations");
+            await resolveAssociations({ collectionId, entity, profile });
+        }
         entity["@reverse"] = reverse;
         return entity;
     } catch (error) {
@@ -198,7 +202,7 @@ function assembleEntityType(types) {
     return types;
 }
 
-async function resolveLinkedEntityAssociations({ collectionId, entity, profile }) {
+async function resolveAssociations({ collectionId, entity, profile }) {
     // associations
     // {
     //     "property": "source",
@@ -221,14 +225,12 @@ async function resolveLinkedEntityAssociations({ collectionId, entity, profile }
     });
     const typesToResolve = Object.keys(resolvers);
 
-    // console.log(query);
-
     // get the entity data from the db
     for (let property of Object.keys(entity["@properties"])) {
         for (let instance of entity["@properties"][property]) {
-            if (!instance.tgtEntity) return instance;
+            if (!instance.tgtEntity) continue;
 
-            // for all entities linked of the source entity
+            // for all entities linked off the source entity
             //   if the type matches the `resolveConfiguration`
             const specificTypesToResolve = intersection(
                 typesToResolve,
@@ -237,35 +239,28 @@ async function resolveLinkedEntityAssociations({ collectionId, entity, profile }
             const resolveAssociations = specificTypesToResolve.length > 0;
             if (resolveAssociations) {
                 // lookup the full entity
-                // let instanceFullEntity = this.getEntity({
-                //     id: instance.tgtEntity["@id"],
-                //     resolveLinkedEntityAssociations: false,
-                // });
-                // let instanceFullEntity = await models.entity.findOne({
-                //     where: { eid: instance.tgtEntity["@id"], collectionId },
-                //     include: [
-                //         {
-                //             model: models.type,
-                //             as: "etype",
-                //         },
-                //     ],
-                // });
-                // // get the list of properties to resolve
-                // const propertiesToResolve = flattenDeep(
-                //     specificTypesToResolve.map((type) => resolvers[type])
-                // );
-                // // for each property, resolve all the attached entities
-                // //  and store in the associations array on the source
-                // propertiesToResolve.forEach((property) => {
-                //     instance.tgtEntity.associations.push(
-                //         ...instanceFullEntity["@properties"][property].map((e) => ({
-                //             property,
-                //             entity: e.tgtEntity,
-                //         }))
-                //     );
-                // });
+                let instanceFullEntity = await loadEntity({
+                    collectionId,
+                    id: instance.tgtEntity["@id"],
+                    profile,
+                    resolveLinkedEntityAssociations: false,
+                });
+                const propertiesToResolve = flattenDeep(
+                    specificTypesToResolve.map((type) => resolvers[type])
+                );
+                // for each property, resolve all the attached entities
+                //  and store in the associations array on the source
+                let associations = [];
+                propertiesToResolve.forEach((property) => {
+                    associations.push(
+                        ...instanceFullEntity["@properties"][property].map((e) => ({
+                            property,
+                            entity: e.tgtEntity,
+                        }))
+                    );
+                });
+                instance.tgtEntity.associations = uniqBy(associations, (e) => e.entity["@id"]);
             }
-            return instance;
         }
     }
 }
