@@ -1,50 +1,59 @@
 <template>
-    <div class="flex flex-col" v-if="data.entity?.['@id']">
-        <div class="bg-stone-200 sticky top-0 z-10 p-4 flex flex-row space-x-2">
-            <div class="flex flex-col">
-                <div class="text-sm">
-                    {{ data.entity["@type"].join(", ") }}
+    <div>
+        <el-progress
+            percentage="100"
+            :show-text="false"
+            :indeterminate="true"
+            v-if="data.loading"
+        />
+
+        <div class="flex flex-col" v-if="data.entity?.['@id']">
+            <div class="bg-stone-200 sticky top-0 z-10 p-4 flex flex-row space-x-2">
+                <div class="flex flex-col">
+                    <div class="text-sm">
+                        {{ data.entity["@type"].join(", ") }}
+                    </div>
+                    <div class="text-lg">
+                        {{ data.entity.name }}
+                    </div>
                 </div>
-                <div class="text-lg">
-                    {{ data.entity.name }}
+                <div class="flex-grow"></div>
+                <div v-if="data.entity['@type'].includes('File')">
+                    <el-button @click="data.showPreviewDrawer = !data.showPreviewDrawer"
+                        ><i class="fa-regular fa-eye"></i
+                    ></el-button>
+                </div>
+                <div>
+                    <el-popconfirm
+                        title="Are you sure you want to delete this entity?"
+                        width="350"
+                        @confirm="deleteEntity"
+                    >
+                        <template #reference>
+                            <el-button type="danger">Delete this entity</el-button>
+                        </template>
+                    </el-popconfirm>
                 </div>
             </div>
-            <div class="flex-grow"></div>
-            <div v-if="data.entity['@type'].includes('File')">
-                <el-button @click="data.showPreviewDrawer = !data.showPreviewDrawer"
-                    ><i class="fa-regular fa-eye"></i
-                ></el-button>
+            <div class="overflow-scroll p-4" :class="panelHeight">
+                <!-- <pre>{{ data.entity }}</pre> -->
+                <DescriboCrateBuilderComponent
+                    :entity="data.entity"
+                    :profile="data.crateManager.profile"
+                    :crateManager="data.crateManager"
+                    mode="online"
+                    :configuration="data.configuration"
+                    @load:entity="loadEntity"
+                    @create:property="createProperty"
+                    @save:property="saveProperty"
+                    @delete:property="deleteProperty"
+                    @create:entity="ingestEntity"
+                    @ingest:entity="ingestEntity"
+                    @link:entity="linkEntity"
+                    @unlink:entity="unlinkEntity"
+                    @update:entity="updateEntity"
+                />
             </div>
-            <div>
-                <el-popconfirm
-                    title="Are you sure you want to delete this entity?"
-                    width="350"
-                    @confirm="deleteEntity"
-                >
-                    <template #reference>
-                        <el-button type="danger">Delete this entity</el-button>
-                    </template>
-                </el-popconfirm>
-            </div>
-        </div>
-        <div class="overflow-scroll p-4" :class="panelHeight">
-            <!-- <pre>{{ data.entity }}</pre> -->
-            <DescriboCrateBuilderComponent
-                :entity="data.entity"
-                :profile="data.crateManager.profile"
-                :crateManager="data.crateManager"
-                mode="online"
-                :configuration="data.configuration"
-                @load:entity="loadEntity"
-                @create:property="createProperty"
-                @save:property="saveProperty"
-                @delete:property="deleteProperty"
-                @create:entity="ingestEntity"
-                @ingest:entity="ingestEntity"
-                @link:entity="linkEntity"
-                @unlink:entity="unlinkEntity"
-                @update:entity="updateEntity"
-            />
         </div>
         <el-drawer
             v-model="data.showPreviewDrawer"
@@ -80,6 +89,7 @@ const $store = useStore();
 const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 const data = reactive({
+    loading: false,
     showPreviewDrawer: false,
     entity: {},
     crateManager: {
@@ -166,7 +176,10 @@ async function refresh() {
 }
 
 async function loadEntity({ id }) {
+    const t0 = performance.now();
     if (base64regex.test(id)) id = atob(id);
+    if (id === "./") data.loading = true;
+    console.log(id);
     let response = await $http.get({
         route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}`,
     });
@@ -174,6 +187,9 @@ async function loadEntity({ id }) {
         // handle the error
     }
     response = await response.json();
+    const t1 = performance.now();
+    console.log(t1 - t0);
+    data.loading = false;
     data.entity = response.entity;
     $router.push({ query: { id: btoa(id) } });
 }
