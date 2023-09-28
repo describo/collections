@@ -1,14 +1,13 @@
 <template>
     <div>
         <el-progress
+            v-show="data.loading && !data.entity?.['@id']"
             :percentage="100"
             :show-text="false"
             :indeterminate="true"
-            v-if="data.loading"
         />
-
-        <div class="flex flex-col" v-if="data.entity?.['@id']">
-            <div class="bg-stone-200 sticky top-0 z-10 p-4 flex flex-row space-x-2">
+        <div class="bg-stone-200 sticky top-0 z-10">
+            <span class="flex flex-row space-x-2 p-4 items-start" v-if="data.entity?.['@id']">
                 <div class="flex flex-col">
                     <div class="text-sm">
                         {{ data.entity["@type"].join(", ") }}
@@ -16,6 +15,14 @@
                     <div class="text-lg">
                         {{ data.entity.name }}
                     </div>
+                </div>
+                <div class="w-20">
+                    <el-progress
+                        v-show="data.loading"
+                        :percentage="100"
+                        :show-text="false"
+                        :indeterminate="true"
+                    />
                 </div>
                 <div class="flex-grow"></div>
                 <div v-if="data.entity['@type'].includes('File')">
@@ -34,7 +41,10 @@
                         </template>
                     </el-popconfirm>
                 </div>
-            </div>
+            </span>
+        </div>
+
+        <div class="flex flex-col" v-if="data.entity?.['@id']">
             <div class="overflow-scroll p-4" :class="panelHeight">
                 <!-- <pre>{{ data.entity }}</pre> -->
                 <DescriboCrateBuilderComponent
@@ -262,7 +272,7 @@ async function deleteEntity() {
 
 // IMPLEMENTED
 async function createProperty({ id, property, value }) {
-    // console.log("create:property", id, property, value);
+    // console.log("create:property", $route.params.code, id, property, value);
     let response = await $http.post({
         route: `/collections/${$route.params.code}/entities/${encodeURIComponent(id)}/properties`,
         body: { property, value },
