@@ -7,7 +7,7 @@ import models from "../models/index.js";
 import profile from "../../../configuration/profiles/ohrm-default-profile.json" assert { type: "json" };
 import lodashPkg from "lodash";
 const { orderBy, groupBy, intersection, isArray, flattenDeep, uniqBy } = lodashPkg;
-import { validateId } from "../lib/crate-tools.js";
+import { validateId, normalise } from "../lib/crate-tools.js";
 
 export async function getEntities({ collectionId, type, queryString, limit = 10, offset = 0 }) {
     let where = {
@@ -113,7 +113,6 @@ export async function loadEntity({
         let reverse = await assembleEntityReverseConnections({ entity });
         entity = assembleEntity({ collectionId, entity, profile });
         if (resolveLinkedEntityAssociations && id !== "./") {
-            console.log("resolve associations");
             await resolveAssociations({ collectionId, entity, profile });
         }
         entity["@reverse"] = reverse;
@@ -267,6 +266,7 @@ async function resolveAssociations({ collectionId, entity, profile }) {
 
 // TODO none of this is tested yet
 export async function createEntity({ collectionId, entity }) {
+    entity = normalise(entity);
     let entityModel = await models.entity.findOrCreate({
         where: {
             collectionId,
