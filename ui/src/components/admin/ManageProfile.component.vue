@@ -6,6 +6,7 @@
             <div class="flex flex-row">
                 <el-select
                     v-model="data.selectedCollectionCode"
+                    value-key="name"
                     clearable
                     @change="getCollectionProfile"
                     class="w-full"
@@ -15,7 +16,9 @@
                         :key="item.code"
                         :label="item.name"
                         :value="item.code"
-                    />
+                    >
+                        {{ item.name }} ({{ item.code }})
+                    </el-option>
                 </el-select>
             </div>
         </el-card>

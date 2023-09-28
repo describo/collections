@@ -4,6 +4,7 @@
             <div class="w-64">Select a collection:</div>
             <el-select
                 v-model="data.selectedCollection"
+                value-key="name"
                 clearable
                 class="w-full"
                 @change="loadCollectionUsers"
@@ -14,7 +15,9 @@
                     :label="item.name"
                     :value="item"
                     :value-key="item.code"
-                />
+                >
+                    {{ item.name }} ({{ item.code }})</el-option
+                >
             </el-select>
         </div>
 
