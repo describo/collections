@@ -307,7 +307,9 @@ async function createAndLinkEntityHandler(req) {
 
     // find the source entity
     const sourceEntityId = decodeURIComponent(req.params.entityId);
-    let sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
+    let sourceEntity = await this.models.entity.findOne({
+        where: { collectionId, eid: sourceEntityId },
+    });
 
     // create the new entity
     let entity = { ...req.body.entity };
