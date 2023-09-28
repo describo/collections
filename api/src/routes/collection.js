@@ -354,10 +354,14 @@ async function linkEntityHandler(req) {
 // TODO this code does not have tests yet
 async function unlinkEntityHandler(req) {
     const sourceEntityId = decodeURIComponent(req.params.entityId);
-    const sourceEntity = await this.models.entity.findOne({ where: { eid: sourceEntityId } });
+    const sourceEntity = await this.models.entity.findOne({
+        where: { collectionId: req.session.collection.id, eid: sourceEntityId },
+    });
 
     const targetEntityId = req.body.tgtEntityId;
-    const targetEntity = await this.models.entity.findOne({ where: { eid: targetEntityId } });
+    const targetEntity = await this.models.entity.findOne({
+        where: { collectionId: req.session.collection.id, eid: targetEntityId },
+    });
 
     let property = await this.models.property.findOne({
         where: {
