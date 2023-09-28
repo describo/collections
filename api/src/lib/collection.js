@@ -359,7 +359,7 @@ export async function updateEntity({
 }
 
 export async function createProperty({ collectionId, entityId, property, value }) {
-    const entity = await models.entity.findOne({ where: { eid: entityId } });
+    const entity = await models.entity.findOne({ where: { collectionId, eid: entityId } });
     property = await models.property.create({
         property,
         value,
